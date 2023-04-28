@@ -10,10 +10,10 @@
 import SwiftUI
 import SpriteKit
 
-struct SKSceneView: View {
+public struct SKSceneView: View {
     let scene: SKScene
 
-    var body: some View {
+    public var body: some View {
         GeometryReader { proxy in
             SKSceneViewRepresentable(scene: scene, proxy: proxy)
         }

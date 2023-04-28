@@ -5,11 +5,11 @@
 //  Created by Andy Hooper on 2021-04-10.
 //
 
-class Delay<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class Delay<Samples:DSPSamples>: Buffered<Samples,Samples> {
     var buffer:Samples
     let P:Int
 
-    init(source:BufferedSource<Input>?, _ P:Int) {
+    public init(source:BufferedSource<Input>?, _ P:Int) {
         precondition(P >= 0)
         self.P = P
         buffer = Samples(repeating:Samples.zero, count:P)
@@ -23,7 +23,7 @@ class Delay<Samples:DSPSamples>: Buffered<Samples,Samples> {
      0 0 0 | 1 2 => 0 1 2 | 0 0
      */
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }

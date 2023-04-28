@@ -10,7 +10,7 @@ fileprivate let TABLE_SIZE = 1024
 
 import func CoreFoundation.tanhf
 
-struct OscillatorLookup<Element:DSPScalar>: IteratorProtocol {
+public struct OscillatorLookup<Element:DSPScalar>: IteratorProtocol {
     let table: [Element]
     var phase, step: Float // 0..<TABLE_SIZE corresponds to one cycle
             // could use fixed point for slightly greater accuracy and speed
@@ -24,7 +24,7 @@ struct OscillatorLookup<Element:DSPScalar>: IteratorProtocol {
         step = Float(TABLE_SIZE) * Float(signalHz / sampleHz)
     }
 
-    mutating func next()->Element? {
+    public mutating func next()->Element? {
         // this infinite sequence never returns nil, but Optional is
         // required for protocol conformance
         while phase < -0.5 {
@@ -38,39 +38,39 @@ struct OscillatorLookup<Element:DSPScalar>: IteratorProtocol {
         return v
     }
     
-    mutating func setFrequency(_ f:Float) {
+    public mutating func setFrequency(_ f:Float) {
         step = RADIANS_TO_INDEX * f
     }
     
-    mutating func setPhase(_ p:Float) {
+    public mutating func setPhase(_ p:Float) {
         phase = RADIANS_TO_INDEX * p
     }
     
-    mutating func adjustFrequency(_ d:Float) {
+    public mutating func adjustFrequency(_ d:Float) {
         step += RADIANS_TO_INDEX * d
     }
     
-    mutating func adjustPhase(_ d:Float) {
+    public mutating func adjustPhase(_ d:Float) {
         phase += RADIANS_TO_INDEX * d
     }
     
-    func getPhase()->Float {
+    public func getPhase()->Float {
         return INDEX_TO_RADIANS * phase
     }
     
-    func getFrequency()->Float {
+    public func getFrequency()->Float {
         let f = INDEX_TO_RADIANS * step
         return (f > Float.pi) ? (f - 2*Float.pi) : f
     }
 
 }
 
-class Oscillator<Output:DSPSamples>: BufferedSource<Output> {
+public class Oscillator<Output:DSPSamples>: BufferedSource<Output> {
     let signalHz, sampleHz: Double
     var level:Float
     private var osc: OscillatorLookup<Output.Element>
 
-    init(signalHz:Double, sampleHz:Double, level:Float=1.0) {
+    public init(signalHz:Double, sampleHz:Double, level:Float=1.0) {
         precondition(sampleHz >= signalHz * 2, "sampleHz must be >= 2 * signalHz")
         self.signalHz = signalHz
         self.sampleHz = sampleHz
@@ -80,13 +80,13 @@ class Oscillator<Output:DSPSamples>: BufferedSource<Output> {
         super.init(name: "Oscillator")
     }
 
-    func next()->Output.Element? {
+    public func next()->Output.Element? {
         // this infinite sequence never returns nil, but Optional is
         // required for protocol conformance
         osc.next()
     }
 
-    func generate(_ numSamples:Int) {
+    public func generate(_ numSamples:Int) {
         assert(outputBuffer.isEmpty)
         outputBuffer.reserveCapacity(numSamples)
         // passing the output buffer as an argument, instead of accessing the class property,
@@ -102,44 +102,44 @@ class Oscillator<Output:DSPSamples>: BufferedSource<Output> {
         }
     }
     
-    var bufferSize: Int
+    public var bufferSize: Int
     
-    override func sampleFrequency() -> Double {
+    override public func sampleFrequency() -> Double {
         return Double(sampleHz)
     }
     
-    func setFrequency(_ d:Float) {
+    public func setFrequency(_ d:Float) {
         osc.setFrequency(d) //TODO / sampleHz
     }
     
-    func setPhase(_ d:Float) {
+    public func setPhase(_ d:Float) {
         osc.setPhase(d)
     }
     
-    func adjustFrequency(_ d:Float) {
+    public func adjustFrequency(_ d:Float) {
         osc.adjustFrequency(d) //TODO / sampleHz
     }
     
-    func adjustPhase(_ d:Float) {
+    public func adjustPhase(_ d:Float) {
         osc.adjustPhase(d)
     }
     
-    func getPhase()->Float {
+    public func getPhase()->Float {
         osc.getPhase()
     }
     
-    func getFrequency()->Float {
+    public func getFrequency()->Float {
         osc.getFrequency() //TODO * sampleHz
     }
 
 }
 
-class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
+public class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
     let signalHz, sampleHz: Double
     var level:Float
     var phase, step: Float
     
-    init(signalHz:Double, sampleHz:Double, level:Float=1.0) {
+    public init(signalHz:Double, sampleHz:Double, level:Float=1.0) {
         precondition(sampleHz >= signalHz * 2, "sampleHz must be >= 2 * signalHz")
         self.signalHz = signalHz
         self.sampleHz = sampleHz
@@ -150,7 +150,7 @@ class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
         super.init(name: "OscillatorPrecise")
     }
 
-    func next()->Output.Element? {
+    public func next()->Output.Element? {
         // this infinite sequence never returns nil, but Optional is
         // required for protocol conformance
         while phase < -Float.pi {
@@ -164,7 +164,7 @@ class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
         return v
     }
 
-    func generate(_ numSamples:Int) {
+    public func generate(_ numSamples:Int) {
         assert(outputBuffer.isEmpty)
         outputBuffer.reserveCapacity(numSamples)
         // passing the output buffer as an argument, instead of accessing the class property,
@@ -173,7 +173,7 @@ class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
         produce(clear: true)
     }
     
-    func generate(_ numSamples: Int, _ output: inout Output) {
+    public func generate(_ numSamples: Int, _ output: inout Output) {
         for _ in 0..<numSamples {
             let n:Output.Element = next()!
             output.append(n)
@@ -182,45 +182,45 @@ class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
     
     var bufferSize: Int
     
-    override func sampleFrequency() -> Double {
+    override public func sampleFrequency() -> Double {
         return Double(sampleHz)
     }
       
-    func setFrequency(_ f:Float) {
+    public func setFrequency(_ f:Float) {
         step = f
     }
     
-    func setPhase(_ p:Float) {
+    public func setPhase(_ p:Float) {
         phase = p
     }
     
-    func adjustFrequency(_ d:Float) {
+    public func adjustFrequency(_ d:Float) {
         step += d
     }
     
-    func adjustPhase(_ d:Float) {
+    public func adjustPhase(_ d:Float) {
         phase += d
     }
     
-    func getPhase()->Float {
+    public func getPhase()->Float {
         return phase
     }
     
-    func getFrequency()->Float {
+    public func getFrequency()->Float {
         let f = step
         return (f > Float.pi) ? (f - 2*Float.pi) : f
     }
 
 }
 
-class Mixer: Buffered<ComplexSamples,ComplexSamples> {
+public class Mixer: Buffered<ComplexSamples,ComplexSamples> {
     var osc: OscillatorLookup<Output.Element>
     public typealias ErrorEstimator = (Input.Element,Output.Element)->Float
     let errorEstimator: ErrorEstimator?
     var alpha, beta: Float // control loop bandwidth
-    static let DEFAULT_LOOP_BANDWIDTH = Float(0.1)
+    public static let DEFAULT_LOOP_BANDWIDTH = Float(0.1)
 
-    init(source:BufferedSource<Input>,
+    public init(source:BufferedSource<Input>,
          signalHz:Double,
          level:Float=1.0,
          controlLoopBandwidth:Float=DEFAULT_LOOP_BANDWIDTH,
@@ -233,12 +233,12 @@ class Mixer: Buffered<ComplexSamples,ComplexSamples> {
         super.init("Mixer", source)
     }
 
-    func setLoopBandwidth(_ loopBandwidth: Float) {
+    public func setLoopBandwidth(_ loopBandwidth: Float) {
         self.alpha = loopBandwidth
         self.beta = self.alpha.squareRoot()
     }
 
-    override func process(_ x:Input, _ output:inout Output) {
+    override public func process(_ x:Input, _ output:inout Output) {
         let inCount = x.count
         output.resize(inCount) // output same size as input
         if inCount == 0 { return }
@@ -272,17 +272,17 @@ struct tanhLookup {
     }
 }
 
-class CostasLoop: Buffered<ComplexSamples,ComplexSamples> {
+public class CostasLoop: Buffered<ComplexSamples,ComplexSamples> {
     var osc: OscillatorLookup<Output.Element>
     public typealias ErrorEstimator = (Output.Element)->Float
     let errorEstimator: ErrorEstimator
     var alpha, beta: Float // control loop bandwidth
-    static let DEFAULT_LOOP_BANDWIDTH = Float(0.1)
+    public static let DEFAULT_LOOP_BANDWIDTH = Float(0.1)
     static let tanh = tanhLookup()
     var noise: Float
     var scopeData: ScopeData?
 
-    init(source:BufferedSource<Input>,
+    public init(source:BufferedSource<Input>,
          signalHz:Double,
          level:Float=1.0,
          controlLoopBandwidth:Float=DEFAULT_LOOP_BANDWIDTH,
@@ -297,26 +297,26 @@ class CostasLoop: Buffered<ComplexSamples,ComplexSamples> {
         super.init("CostasLoop", source)
     }
 
-    func setLoopBandwidth(_ loopBandwidth: Float) {
+    public func setLoopBandwidth(_ loopBandwidth: Float) {
         self.alpha = loopBandwidth
         self.beta = self.alpha.squareRoot()
     }
 
-    static func errorEstimator2(_ o:Output.Element)->Float {
+    public static func errorEstimator2(_ o:Output.Element)->Float {
         return o.real * o.imag
     }
     
-    func errorEstimatorSNR2(_ o:Output.Element)->Float {
+    public func errorEstimatorSNR2(_ o:Output.Element)->Float {
         let snr = o.modulus() / noise
         return CostasLoop.tanh.tanh(snr * o.real) * o.imag
     }
     
-    static func errorEstimator2s(_ o:Output.Element)->Float {
+    public static func errorEstimator2s(_ o:Output.Element)->Float {
         let snr = o.modulus()
         return CostasLoop.tanh.tanh(snr * o.real) * o.imag
     }
 
-    override func process(_ x:Input, _ output:inout Output) {
+    override public func process(_ x:Input, _ output:inout Output) {
         let inCount = x.count
         output.resize(inCount) // output same size as input
         if inCount == 0 { return }

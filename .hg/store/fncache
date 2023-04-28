@@ -51,3 +51,4 @@ data/Sources/sdrlib/DSP/AMDemodulate.swift.i
 data/Sources/sdrlib/DSP/AudioOutput.swift.i
 data/Sources/sdrlib/DSP/SDRplay.swift.i
 data/Sources/sdrlib/DSP/FIRFilter.swift.i
+data/.hgignore.i

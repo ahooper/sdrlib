@@ -6,12 +6,12 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let reversedCoefficients:[Float]
     let P, Pminus1:Int
     private var overlap:Samples
 
-    init(source:BufferedSource<Input>?, _ coefficients:[Float]) {
+    public init(source:BufferedSource<Input>?, _ coefficients:[Float]) {
         precondition(coefficients.count >= 1)
         reversedCoefficients = coefficients.reversed()
         P = coefficients.count
@@ -20,7 +20,7 @@ class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
         super.init("FIRFilter", source)
     }
     
-    override func process(_ x:Input, _ output:inout Output) {
+    override public func process(_ x:Input, _ output:inout Output) {
         let inCount = x.count
         output.resize(inCount) // output same size as input
         if inCount == 0 { return }

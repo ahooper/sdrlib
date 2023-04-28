@@ -7,10 +7,10 @@
 
 import Accelerate
 
-class AMDemodulate: Buffered<ComplexSamples,RealSamples> {
+public class AMDemodulate: Buffered<ComplexSamples,RealSamples> {
     let factor:Float
     
-    init(_ name:String, _ source:BufferedSource<Input>?,
+    public init(_ name:String, _ source:BufferedSource<Input>?,
          factor:Float=1) {
         self.factor = factor
         super.init(name, source)
@@ -18,14 +18,14 @@ class AMDemodulate: Buffered<ComplexSamples,RealSamples> {
 }
 
 
-class AMEnvDemodulate: AMDemodulate {
+public class AMEnvDemodulate: AMDemodulate {
     
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          factor:Float=1) {
         super.init("AMEnvDemodulate", source, factor:factor)
     }
     
-    override func process(_ x:ComplexSamples, _ out:inout RealSamples) {
+    override public func process(_ x:ComplexSamples, _ out:inout RealSamples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }
@@ -76,7 +76,7 @@ class AMEnvDemodulateX: AMDemodulate {
 }
 
 #if false
-class AMSyncDemodulate: AMDemodulate {
+public class AMSyncDemodulate: AMDemodulate {
     let osc:Mixer
 
     init(source:BufferedSource<Input>?,
@@ -87,7 +87,7 @@ class AMSyncDemodulate: AMDemodulate {
         super.init("AMSyncDemodulate", source, factor:factor)
     }
     
-    override func process(_ x:ComplexSamples, _ out:inout RealSamples) {
+    override public func process(_ x:ComplexSamples, _ out:inout RealSamples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }
@@ -98,10 +98,10 @@ class AMSyncDemodulate: AMDemodulate {
     }
 }
 
-class AMCostasDemodulate:AMDemodulate {
+public class AMCostasDemodulate:AMDemodulate {
     let osc:PLL
 
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          factor:Float=1) {
         osc = PLL(source: source, signalHz: 0, errorEstimator: { y in
             let v = y.conjugate()
@@ -110,7 +110,7 @@ class AMCostasDemodulate:AMDemodulate {
         super.init("AMCostasDemodulate", source, factor:factor)
     }
     
-    override func process(_ x:ComplexSamples, _ out:inout RealSamples) {
+    override public func process(_ x:ComplexSamples, _ out:inout RealSamples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }

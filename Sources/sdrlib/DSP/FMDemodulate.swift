@@ -8,12 +8,12 @@
 //  Copyright © 2020 Andy Hooper. All rights reserved.
 //
 
-class FMDemodulate: Buffered<ComplexSamples,RealSamples> {
+public class FMDemodulate: Buffered<ComplexSamples,RealSamples> {
     let modulationFactor:Float
     let factor:Float
     private var overlap:ComplexSamples.Element
     
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          modulationFactor:Float) {
         self.modulationFactor = modulationFactor
         self.factor = 1 / (2 * Float.pi * modulationFactor)
@@ -21,7 +21,7 @@ class FMDemodulate: Buffered<ComplexSamples,RealSamples> {
         super.init("FMDemodulate", source)
     }
     
-    override func process(_ x:Input, _ output:inout Output) {
+    override public func process(_ x:Input, _ output:inout Output) {
         let inCount = x.count
         output.resize(inCount) // output same size as input
         if inCount == 0 { return }

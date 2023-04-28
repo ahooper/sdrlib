@@ -11,9 +11,9 @@
 
 import func CoreFoundation.tanf
 
-class FMDeemphasis: IIR22Filter<RealSamples> {
+public class FMDeemphasis: IIR22Filter<RealSamples> {
 
-    init(source:BufferedSource<Input>, tau:Float=75e-6) {
+    public init(source:BufferedSource<Input>, tau:Float=75e-6) {
         let fc = 1.0 / tau, // corner frequency
             fs = Float(source.sampleFrequency()),
             ca = 2.0 * fs * tanf(fc / (2.0 * fs))

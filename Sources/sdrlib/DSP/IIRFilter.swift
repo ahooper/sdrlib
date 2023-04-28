@@ -6,7 +6,7 @@
 //  Copyright © 2020 Andy Hooper. All rights reserved.
 //
 
-class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let reversedForward, reversedBackward:[Float]
     let numForward, numForwardMinus1, numBackward, numBackwardMinus1:Int
     let backwardCoefficient0:Float
@@ -35,7 +35,7 @@ class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
         print(d)
     }
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let count = x.count
         out.resize(count) // output same size as input
         if count == 0 { return }
@@ -84,12 +84,12 @@ class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     }
 }
 
-class IIR22Filter<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class IIR22Filter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     // Specialization of IIRFilter for 2 forward coefficients, 2 backward coefficients, backward[0] == 1.0
     let b0, b1, a1:Float
     private var overlapIn, overlapOut:Samples.Element
 
-    init(source:BufferedSource<Samples>?, _ forwardCoefficients:[Float], _ backwardCoefficients:[Float]) {
+    public init(source:BufferedSource<Samples>?, _ forwardCoefficients:[Float], _ backwardCoefficients:[Float]) {
         precondition(forwardCoefficients.count == 2)
         precondition(backwardCoefficients.count == 2)
         precondition(backwardCoefficients[0] == 1.0)
@@ -101,7 +101,7 @@ class IIR22Filter<Samples:DSPSamples>: Buffered<Samples,Samples> {
         super.init("IIR22Filter", source)
     }
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let count = x.count
         out.resize(count) // output same size as input
         if count == 0 { return }

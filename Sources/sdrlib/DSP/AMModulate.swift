@@ -5,13 +5,13 @@
 //  Created by Andy Hooper on 2020-09-08.
 //
 
-class AMModulate: Buffered<RealSamples,ComplexSamples> {
+public class AMModulate: Buffered<RealSamples,ComplexSamples> {
     let carrier: Oscillator<ComplexSamples>,
         factor: Float,
         suppressedCarrier: Bool
     private var carr: ComplexSamples
 
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          factor:Float=1,
          carrierHz:Double,
          suppressedCarrier:Bool=false,
@@ -25,7 +25,7 @@ class AMModulate: Buffered<RealSamples,ComplexSamples> {
         super.init("AMModulate", source)
      }
     
-    override func process(_ x:Input, _ output: inout Output) {
+    override public func process(_ x:Input, _ output: inout Output) {
         let inCount = x.count
         output.resize(inCount) // output same size as input
         if inCount == 0 { return }

@@ -52,16 +52,16 @@
     var x_Dplus1:Samples.Element { window[w] }
 }
 
-class DCRemove<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class DCRemove<Samples:DSPSamples>: Buffered<Samples,Samples> {
     private var ma1, ma2:MovingAverage<Samples>
     
-    init(source:BufferedSource<Input>?, _ D:Int) {
+    public init(source:BufferedSource<Input>?, _ D:Int) {
         ma1 = MovingAverage<Samples>(D)
         ma2 = MovingAverage<Samples>(D)
         super.init("DCRemove", source)
     }
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }

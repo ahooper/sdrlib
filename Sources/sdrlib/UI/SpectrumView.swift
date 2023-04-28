@@ -7,8 +7,9 @@
 
 import SwiftUI
 import SpriteKit // for SpriteView
+import Combine // for Publisher
 
-struct SpectrumView: View {
+public struct SpectrumView: View {
     let annotationColour = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
     let backgroundColour = #colorLiteral(red: 0.06361754484, green: 0.2487588786, blue: 0.2487588786, alpha: 1)
     @State var source: SpectrumData?
@@ -30,14 +31,21 @@ struct SpectrumView: View {
     
     // https://www.hackingwithswift.com/quick-start/swiftui/how-to-use-a-timer-with-swiftui
     static let REFRESH_HZ = 20.0
-    let timer = Timer.publish(every: 1/REFRESH_HZ /*seconds*/, //TODO: configurable
-                                      //TODO: tolerance
-                              on: .main, in: .common).autoconnect()
+    let timer: Publishers.Autoconnect<Timer.TimerPublisher>
 
-    var body: some View {
+    public init(source: SpectrumData?) {
+        // needs an explicit initializer to allow client access to set source
+        self.source = source
+        // have to initialize timer here since no way to call the implicit initializer
+        timer = Timer.publish(every: 1/SpectrumView.REFRESH_HZ /*seconds*/,
+                                                //TODO: configurable
+                                                //TODO: tolerance
+                              on: .main, in: .common).autoconnect()
+    }
+    public var body: some View {
         VStack(spacing: 0) {
             GraphView(data: [viewData], config: config)
-            .background(Color(backgroundColour))
+                .background(Color(backgroundColour))
                 .foregroundColor(Color(annotationColour))
                 .font(.system(size: 10))
                 .onReceive(timer) { input in

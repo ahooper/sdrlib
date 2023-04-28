@@ -7,14 +7,14 @@
 
 import Foundation
 
-class AGC<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class AGC<Samples:DSPSamples>: Buffered<Samples,Samples> {
     
     var rate: Float         // the update rate of the loop.
     var reference: Float    // reference value to adjust signal power to.
     var gain: Float         // current gain
     var maxGain: Float      // maximum gain value (nan for unlimited)
     
-    init(_ source:BufferedSource<Input>?,
+    public init(_ source:BufferedSource<Input>?,
          rate: Float = 1e-4,
          reference: Float = 1,
          gain: Float = 1,
@@ -26,7 +26,7 @@ class AGC<Samples:DSPSamples>: Buffered<Samples,Samples> {
         super.init("AGC", source)
     }
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }

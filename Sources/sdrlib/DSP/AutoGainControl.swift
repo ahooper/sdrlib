@@ -11,12 +11,12 @@
 
 import func CoreFoundation.log10
 
-class AutoGainControl<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class AutoGainControl<Samples:DSPSamples>: Buffered<Samples,Samples> {
     var gain:Float
     var isLocked:Bool
     var ceil, ceilMA, ceilMAA:Float
 
-    init(_ source:BufferedSource<Input>?, gain:Float=0.5) {
+    public init(_ source:BufferedSource<Input>?, gain:Float=0.5) {
         self.gain = gain
         ceil = 1 / gain
         ceilMA = 1 / gain
@@ -25,7 +25,7 @@ class AutoGainControl<Samples:DSPSamples>: Buffered<Samples,Samples> {
         super.init("AutoGainControl", source)
     }
     
-    override func process(_ x:Samples, _ out:inout Samples) {
+    override public func process(_ x:Samples, _ out:inout Samples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }

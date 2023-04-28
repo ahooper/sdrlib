@@ -13,7 +13,7 @@ public protocol SinkProtocol: AnyObject {
     func process(_ input:Input)
 }
 
-protocol SourceProtocol {
+public protocol SourceProtocol {
     associatedtype Output
     /// Get the sampling frequency this stage is processing.
     func sampleFrequency()-> Double
@@ -26,7 +26,7 @@ let asyncQueue = DispatchQueue(label: "Buffered",
                                qos: .userInteractive,
                                attributes: .concurrent)
 
-class BufferedSource<Output:DSPSamples>: SourceProtocol {
+open class BufferedSource<Output:DSPSamples>: SourceProtocol {
     let name: String
     internal var
         outputBuffer = Output(),    // buffer currently being written - the producer thread has
@@ -43,15 +43,15 @@ class BufferedSource<Output:DSPSamples>: SourceProtocol {
     private var sinks = [Sink](),
                 waitAsync = false
     
-    init(name: String) {
+    public init(name: String) {
         self.name = name
     }
 
-    func connect<S:SinkProtocol>(sink: S, async: Bool = false) where Output == S.Input {
+    public func connect<S:SinkProtocol>(sink: S, async: Bool = false) where Output == S.Input {
         sinks.append(Sink(sink: sink, async: async, process: sink.process))
     }
 
-    func disconnect<S:SinkProtocol>(sink: S, asThread: Bool = false) where Output == S.Input {
+    public func disconnect<S:SinkProtocol>(sink: S, asThread: Bool = false) where Output == S.Input {
         // can't search directly for function equality
         sinks.removeAll(where: { $0.sink === sink })
     }
@@ -86,38 +86,38 @@ class BufferedSource<Output:DSPSamples>: SourceProtocol {
         }
         subProcessTime.stop()
     }
-    var sinkWaitTime = TimeReport(subjectName:"Sink wait"),
+    public var sinkWaitTime = TimeReport(subjectName:"Sink wait"),
         subProcessTime = TimeReport(subjectName:"Sink process")
    
-    func sampleFrequency()-> Double {
+    public func sampleFrequency()-> Double {
         Double.signalingNaN
     }
     
     var debugDescription: String { self.name }
 }
 
-class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>, SinkProtocol {
+open class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>, SinkProtocol {
     var source: BufferedSource<Input>?
     
-    init(_ name:String, _ source:BufferedSource<Input>?) {
+    public init(_ name:String, _ source:BufferedSource<Input>?) {
         self.source = source
         super.init(name: name)
         source?.connect(sink: self, async: false)
         // TODO start()
     }
     
-    func connect(source: BufferedSource<Input>, async: Bool = false) {
+    public func connect(source: BufferedSource<Input>, async: Bool = false) {
         self.source?.disconnect(sink: self)
         self.source = source
         source.connect(sink: self, async: async)
     }
     
-    func disconnect() {
+    public func disconnect() {
         self.source?.disconnect(sink: self)
         self.source = nil
     }
 
-    override func sampleFrequency()-> Double {
+    override public func sampleFrequency()-> Double {
         source?.sampleFrequency() ?? Double.signalingNaN
     }
     
@@ -127,42 +127,42 @@ class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>, Sin
 
     // SinkProtocol //
     
-    func process(_ input: Input) {
+    public func process(_ input: Input) {
         process(input, &outputBuffer)
         produce(clear: true)
     }
 }
 
-class Sink<Input:DSPSamples>: SinkProtocol {
+public class Sink<Input:DSPSamples>: SinkProtocol {
     let name: String
     var source: BufferedSource<Input>?
     
-    init(_ name:String, _ source:BufferedSource<Input>?) {
+    public init(_ name:String, _ source:BufferedSource<Input>?) {
         self.source = source
         self.name = name
         source?.connect(sink: self)
     }
     
-    func connect(source: BufferedSource<Input>, async: Bool = false) {
+    public func connect(source: BufferedSource<Input>, async: Bool = false) {
         self.source?.disconnect(sink: self)
         self.source = source
         source.connect(sink: self, async: async)
     }
     
-    func disconnect() {
+    public func disconnect() {
         self.source?.disconnect(sink: self)
         self.source = nil
     }
 
     // SinkProtocol //
     
-    func process(_ x:Input) {
+    public func process(_ x:Input) {
         fatalError("\(name) process(:) method must be overridden.")
     }
 }
 
-class NilSource<Output:DSPSamples>: BufferedSource<Output> {
-    override func sampleFrequency() -> Double {
+public class NilSource<Output:DSPSamples>: BufferedSource<Output> {
+    override public func sampleFrequency() -> Double {
         Double.signalingNaN
     }
     

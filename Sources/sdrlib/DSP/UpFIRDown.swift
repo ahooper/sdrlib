@@ -10,13 +10,13 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let up, down, Q, Qminus1:Int
     var polyphase:[[Float]]
     var p, offset:Int
     private var overlap:Samples
 
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          _ upRate:Int,
          _ coefficients:[Float],
          _ downRate:Int) {
@@ -42,7 +42,7 @@ class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
         super.init("UpFIRDown", source)
     }
     
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          _ upRate:Int,
          _ downRate:Int,
          _ filterSemiLength:Int=12,

@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-class GraphData: ObservableObject, Identifiable {
-    let id = UUID()
+public class GraphData: ObservableObject, Identifiable {
+    public let id = UUID()
     typealias Point = (x:Float,y:Float)
     @Published var points: [Point]
     init(_ points: [Point]) {
@@ -16,7 +16,7 @@ class GraphData: ObservableObject, Identifiable {
     }
 }
 
-class GraphConfig: ObservableObject {
+public class GraphConfig: ObservableObject {
     @Published var min: GraphData.Point
     @Published var range: GraphData.Point
     @Published var scale: GraphData.Point
@@ -78,12 +78,12 @@ class GraphConfig: ObservableObject {
     }
 }
 
-struct GraphView: View {
+public struct GraphView: View {
     // Marking data and config as @ObservedObject here produces redundant updates
     var data : [GraphData]
     var config : GraphConfig
     
-    var body: some View {
+    public var body: some View {
         ZStack {
             PlotGrid(config: config)
             ForEach(0..<data.count, id: \.self) { i in

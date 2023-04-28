@@ -13,9 +13,9 @@ import class Foundation.NSCondition
 import class Foundation.Thread
 import Csdrplayapi
 
-class SDRplay: BufferedSource<ComplexSamples> {
+public class SDRplay: BufferedSource<ComplexSamples> {
 
-    var devices = [sdrplay_api_DeviceT]()
+    public var devices = [sdrplay_api_DeviceT]()
     var deviceIndex = 0
     var deviceParams: UnsafeMutablePointer<sdrplay_api_DeviceParamsT>?
     
@@ -27,7 +27,7 @@ class SDRplay: BufferedSource<ComplexSamples> {
         // https://www.swift.org/blog/swift-5-exclusivity/
     var bufferFill = NSCondition()
     
-    init() {
+    public init() {
         super.init(name: "SDRplay")
         setBufferSize(SDRplay.BUFFER_SIZE)
         getDevices()

@@ -13,7 +13,7 @@ import class Foundation.NSCondition
 import CoreAudio
 //import Darwin
 
-class AudioOutput: Sink<RealSamples> {
+public class AudioOutput: Sink<RealSamples> {
 
     typealias DataType = Float32
     static let DATA_BYTE_SIZE = MemoryLayout<DataType>.size
@@ -33,7 +33,7 @@ class AudioOutput: Sink<RealSamples> {
     var callbackPlayPoint = 0 // next index in playout buffer to be played
     var bufferSwitch = NSCondition()
 
-    init() {
+    public init() {
 
         super.init("AudioOutput", nil)
         setRunLoop()
@@ -103,26 +103,26 @@ class AudioOutput: Sink<RealSamples> {
         AudioObjectRemovePropertyListener(AudioObjectID(kAudioObjectSystemObject), &defaultOutputPropertyAddress, AudioOutput.propertyListener, Unmanaged<AudioOutput>.passUnretained(self).toOpaque())
     }
 
-    func sampleFrequency() -> Double {
+    public func sampleFrequency() -> Double {
         return Double(sampleRate)
     }
     
-    override func connect(source: BufferedSource<RealSamples>, async: Bool = false) {
+    override public func connect(source: BufferedSource<RealSamples>, async: Bool = false) {
         precondition(source.sampleFrequency() == sampleRate)
         super.connect(source: source, async: async)
     }
     
-    override func disconnect() {
+    override public func disconnect() {
         stop()
         super.disconnect()
         zero()
     }
     
-    let fillTime = TimeReport(subjectName:"AudioOutput fill", highnS:UInt64(1/48e3*512*1e9))
-    let processTime = TimeReport(subjectName:"AudioOutput process", highnS:UInt64(1/48e3*512*1e9))
-    let waitTime = TimeReport(subjectName:"AudioOutput wait", highnS:UInt64(1/48e3*512*1e9))
+    public let fillTime = TimeReport(subjectName:"AudioOutput fill", highnS:UInt64(1/48e3*512*1e9))
+    public let processTime = TimeReport(subjectName:"AudioOutput process", highnS:UInt64(1/48e3*512*1e9))
+    public let waitTime = TimeReport(subjectName:"AudioOutput wait", highnS:UInt64(1/48e3*512*1e9))
 
-    override func process(_ input: Input) {
+    override public func process(_ input: Input) {
         processTime.start()
         //print("AudioOutput process", input.count, deviceStarted, callbackPlaying, fillPoint)
         var filling = 1 - callbackPlaying // fill the buffer that is not playing
@@ -196,7 +196,7 @@ class AudioOutput: Sink<RealSamples> {
         }
     }
     
-    func stop() {
+    public func stop() {
         check(AudioDeviceStop(deviceID, procID))
         deviceStarted = false
         deviceStopped = true
@@ -211,7 +211,7 @@ class AudioOutput: Sink<RealSamples> {
         print("AudioOutput device stopped")
     }
     
-    func resume() {
+    public func resume() {
         print("AudioOutput resume callbackPlaying \(callbackPlaying) callbackPlayPoint \(callbackPlayPoint) fillPoint \(fillPoint)")
         deviceStopped = false
         bufferSwitch.lock() // BEGIN LOCK REGION
@@ -493,7 +493,7 @@ class AudioOutput: Sink<RealSamples> {
         }
     }
     
-    func getFramePeriod()-> Double {
+    public func getFramePeriod()-> Double {
         return Double(getBufferFrameSize(deviceID)) / getSampleRate(deviceID)
     }
 

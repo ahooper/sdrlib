@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ScopeView: View {
+public struct ScopeView: View {
     @State var source: ScopeData?
     @State var viewData = [GraphData]()
     @State var config = GraphConfig(min: (0,-1),
@@ -35,7 +35,7 @@ struct ScopeView: View {
                                       //TODO: tolerance
                               on: .main, in: .common).autoconnect()
 
-    var body: some View {
+    public var body: some View {
         GraphView(data: viewData, config: config)
             .background(Color(backgroundColour))
             .foregroundColor(Color(annotationColour))

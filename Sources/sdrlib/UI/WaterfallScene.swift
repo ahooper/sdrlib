@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class WaterfallImage {
+public class WaterfallImage {
     struct PixelWord {
         var b1,b2,b3,b4:UInt8
         init() {
@@ -85,7 +85,7 @@ class WaterfallImage {
 
 }
 
-class WaterfallScene: SKScene {
+public class WaterfallScene: SKScene {
     /// The spectrum waterfall scene consists of a fixed head node at the top
     /// with a series of descending sprites below. The head image grows line by
     /// line, and is transferred to a descending sprite when it reaches a fixed
@@ -166,7 +166,7 @@ class WaterfallScene: SKScene {
         }
     }
     
-    override func didChangeSize(_ oldSize: CGSize) {
+    override public func didChangeSize(_ oldSize: CGSize) {
         print("WaterfallScene didChangeSize",frame)
         if let head = head {
             head.scale(to: CGSize(width: frame.width, height: head.size.height))

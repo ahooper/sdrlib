@@ -27,7 +27,7 @@ import class Foundation.NSLock
 
 #if false
 // exponential averaging
-class SpectrumDataE: Sink<ComplexSamples> {
+public class SpectrumDataE: Sink<ComplexSamples> {
     let N:Int, /// FFT length
         D:Int  /// FFT segment spacing
     private let dft:vDSP_DFT_Setup
@@ -140,7 +140,7 @@ class SpectrumDataE: Sink<ComplexSamples> {
     // most of the FFT calls are made directly from the input area,
     // with a carry over between calls for the remainder
 
-    override func process(_ input:Input) {
+    override public func process(_ input:Input) {
         //print(name, "process", input.count)
         var sampleIndex = 0
         readLock.lock(); defer {readLock.unlock()}
@@ -228,7 +228,7 @@ class SpectrumDataE: Sink<ComplexSamples> {
 #endif
 
 // Arithmetic average
-class SpectrumData: Sink<ComplexSamples> {
+public class SpectrumData: Sink<ComplexSamples> {
     let N:Int, /// FFT length
         D:Int  /// FFT segment spacing
     private let dft:vDSP_DFT_Setup
@@ -240,10 +240,10 @@ class SpectrumData: Sink<ComplexSamples> {
     private var zeroReference:[Float]
     private let readLock:NSLock
     private var sumInitialValue = Float(1.0e-15) //-150dB ensure non-zero for logarithm, need a var for vDSP_vfill
-    var centreHz:Double = 0
+    public var centreHz:Double = 0
 
     /// The supported values for fftLength are f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.
-    init(source:BufferedSource<Input>?, fftLength:UInt, overlap:UInt=0, windowFunction:WindowFunction.Function=WindowFunction.hann) {
+    public init(source:BufferedSource<Input>?, fftLength:UInt, overlap:UInt=0, windowFunction:WindowFunction.Function=WindowFunction.hann) {
         N = Int(fftLength)
         // let vDSP_DFT_zop_CreateSetup check fftLength
         precondition(overlap < fftLength)
@@ -334,7 +334,7 @@ class SpectrumData: Sink<ComplexSamples> {
     // most of the FFT calls are made directly from the input area,
     // with a carry over between calls for the remainder
 
-    override func process(_ input:Input) {
+    override public func process(_ input:Input) {
         var sampleIndex = 0
         readLock.lock(); defer {readLock.unlock()}
         
@@ -414,7 +414,7 @@ class SpectrumData: Sink<ComplexSamples> {
         numberSummed = 0
     }
     
-    func sampleFrequency()-> Double {
+    public func sampleFrequency()-> Double {
         source?.sampleFrequency() ?? Double.signalingNaN
     }
 

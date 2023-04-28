@@ -14,7 +14,7 @@ class FMTestBaseband: Buffered<RealSamples,ComplexSamples> {
     let factor:Float
     private var phase:Float
 
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          modulationFactor:Float) {
         self.modulationFactor = modulationFactor
         self.factor = 2 * Float.pi * modulationFactor
@@ -22,7 +22,7 @@ class FMTestBaseband: Buffered<RealSamples,ComplexSamples> {
         super.init("FMTestBaseband", source)
     }
     
-    override func process(_ x:RealSamples, _ out:inout ComplexSamples) {
+    override public func process(_ x:RealSamples, _ out:inout ComplexSamples) {
         let inCount = x.count
         out.resize(inCount) // output same size as input
         if inCount == 0 { return }
