@@ -11,7 +11,7 @@
 
 import class Foundation.NSCondition
 import class Foundation.Thread
-import Csdrplayapi
+import sdrplay_api
 
 public class SDRplay: BufferedSource<ComplexSamples> {
 
@@ -119,9 +119,41 @@ public class SDRplay: BufferedSource<ComplexSamples> {
     }
     
     public override func sampleFrequency() -> Double {
-        (deviceParams!.pointee.rxChannelA.pointee.ctrlParams.decimation.enable != 0) ?
-            sampleHz / Double(deviceParams!.pointee.rxChannelA.pointee.ctrlParams.decimation.decimationFactor) :
-            sampleHz
+        let decim1 = (deviceParams!.pointee.rxChannelA.pointee.ctrlParams.decimation.enable != 0) ?
+                        deviceParams!.pointee.rxChannelA.pointee.ctrlParams.decimation.decimationFactor : 1
+        /* SDRplay_API_Specification_v3.06 s.3.13
+         Conditions for LIF down-conversion to be enabled for all RSPs in single tuner mode:
+         (fsHz == 8192000) && (bwType == sdrplay_api_BW_1_536) && (ifType == sdrplay_api_IF_2_048) => DecFac 4
+         (fsHz == 8000000) && (bwType == sdrplay_api_BW_1_536) && (ifType == sdrplay_api_IF_2_048) => DecFac 4
+         (fsHz == 8000000) && (bwType == sdrplay_api_BW_5_000) && (ifType == sdrplay_api_IF_2_048) => DecFac 4
+         (fsHz == 2000000) && (bwType <= sdrplay_api_BW_0_300) && (ifType == sdrplay_api_IF_0_450) => DecFac 4
+         (fsHz == 2000000) && (bwType == sdrplay_api_BW_0_600) && (ifType == sdrplay_api_IF_0_450) => DecFac 2
+         (fsHz == 6000000) && (bwType <= sdrplay_api_BW_1_536) && (ifType == sdrplay_api_IF_1_620) => DecFac 3
+         In RSPduo master/slave mode, down-conversion is always enabled.
+         */
+        let decim2 =
+            (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 8192000 &&
+              deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType == sdrplay_api_BW_1_536 &&
+              deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_2_048) ? 4
+            : (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 8000000 &&
+              deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType == sdrplay_api_BW_1_536 &&
+              deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_2_048) ? 4
+            : (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 8000000 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType == sdrplay_api_BW_5_000 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_2_048) ? 4
+            : (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 2000000 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType.rawValue <= sdrplay_api_BW_0_300.rawValue &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_0_450) ? 4
+            : (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 2000000 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType == sdrplay_api_BW_0_600 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_0_450) ? 2
+            : (deviceParams!.pointee.devParams.pointee.fsFreq.fsHz == 6000000 &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType.rawValue <= sdrplay_api_BW_1_536.rawValue &&
+               deviceParams!.pointee.rxChannelA.pointee.tunerParams.ifType == sdrplay_api_IF_1_620) ? 3
+            : 1
+            //TODO In RSPduo master/slave mode, down-conversion is always enabled.
+        //print("SDRplay", "sampleFrequency", sampleHz, decim1, decim2)
+        return sampleHz / Double(decim1) / Double(decim2)
     }
     
     private func updateIfInit(_ reasonForUpdate: sdrplay_api_ReasonForUpdateT,
@@ -263,6 +295,7 @@ public class SDRplay: BufferedSource<ComplexSamples> {
                       Opt_Enable = "enable",
                       Opt_Disable = "disable"
     public static let OptRFNotch = "rfnotch_ctrl"
+    public static let OptDABNotch = "dabnotch_ctrl"
     public static let OptAGCMode = "agc_mode",
                       OptAGCMode_100Hz = "100Hz",
                       OptAGCMode_50Hz = "50Hz",
@@ -273,7 +306,7 @@ public class SDRplay: BufferedSource<ComplexSamples> {
     public static let OptAGCSetPoint = "agc_set_point"
     public static let OptDecimation = "decimation"
     public static let OptLNAstate = "LNAstate"
-    public static let OptRFGainReduction = "rf_gain_reduction"
+    public static let OptRFGainReduction = "rf_gain_reduction" // converted to OptLNAstate
     public static let OptBandwidth = "bandwidth",
                       OptBandwidth_0_200     = Int(sdrplay_api_BW_0_200.rawValue),
                       OptBandwidth_0_300     = Int(sdrplay_api_BW_0_300.rawValue),
@@ -448,7 +481,31 @@ public class SDRplay: BufferedSource<ComplexSamples> {
             default:
                 failIfError(sdrplay_api_InvalidParam, value)
             }
-//TODO DAB notch
+
+        } else if option == SDRplay.OptDABNotch {
+            en = (value == SDRplay.Opt_Disable) ? 0 : 1
+            switch devices[deviceIndex].hwVer {
+            
+            case UInt8(SDRPLAY_RSP1A_ID):
+                deviceParams!.pointee.devParams.pointee.rsp1aParams.rfDabNotchEnable = en
+                update = sdrplay_api_Update_Rsp1a_RfDabNotchControl
+
+            case UInt8(SDRPLAY_RSPduo_ID):
+                if devices[deviceIndex].tuner == sdrplay_api_Tuner_A {
+                    deviceParams!.pointee.rxChannelA.pointee.rspDuoTunerParams.rfDabNotchEnable = en
+                } else {
+                    deviceParams!.pointee.rxChannelB.pointee.rspDuoTunerParams.rfDabNotchEnable = en
+                }
+                update = sdrplay_api_Update_RspDuo_RfDabNotchControl
+
+            case UInt8(SDRPLAY_RSPdx_ID):
+                deviceParams!.pointee.devParams.pointee.rspDxParams.rfDabNotchEnable = en
+                updateExt1 = sdrplay_api_Update_RspDx_RfDabNotchControl
+
+            default:
+                failIfError(sdrplay_api_InvalidParam, value)
+            }
+
         } else if option == SDRplay.OptAGCMode {
             if value == SDRplay.OptAGCMode_100Hz {
                 deviceParams!.pointee.rxChannelA.pointee.ctrlParams.agc.enable = sdrplay_api_AGC_100HZ

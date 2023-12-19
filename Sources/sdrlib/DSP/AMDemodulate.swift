@@ -49,14 +49,14 @@ public class AMEnvDemodulate: AMDemodulate {
         }
         
         //out.real.forEach { print(String(format: "%.3f", $0), terminator: " ")}; print()
-        //print(out.real[0])
+        //print(osub, out.real[0])
     }
 }
 
 
-class AMEnvDemodulateX: AMDemodulate {
+public class AMEnvDemodulateX: AMDemodulate {
     
-    init(source:BufferedSource<Input>?,
+    public init(source:BufferedSource<Input>?,
          factor:Float=1) {
         super.init("AMEnvDemodulateX", source, factor:factor)
     }

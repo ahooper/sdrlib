@@ -167,7 +167,7 @@ public class WaterfallScene: SKScene {
     }
     
     override public func didChangeSize(_ oldSize: CGSize) {
-        print("WaterfallScene didChangeSize",frame)
+        //print("WaterfallScene didChangeSize",frame)
         if let head = head {
             head.scale(to: CGSize(width: frame.width, height: head.size.height))
         }

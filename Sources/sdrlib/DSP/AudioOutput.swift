@@ -82,7 +82,7 @@ public class AudioOutput: Sink<RealSamples> {
         for i in 0..<audioBuffers.count { //  = 2
             audioBuffers[i] = ContiguousArray<DataType>(repeating:DataType.zero, count:bufferSize)
         }
-
+print("AudioOutput init audioBuffers count",audioBuffers.count)
         check(AudioDeviceCreateIOProcID(deviceID, AudioOutput.outputCallback, Unmanaged<AudioOutput>.passUnretained(self).toOpaque(), &procID))
 
         // Listen for overload and change of default output device
@@ -285,6 +285,9 @@ public class AudioOutput: Sink<RealSamples> {
         if numToCopy < numSamples {
             s.underflowCount += 1
         }
+        let cbp=s.callbackPlaying, abc=s.audioBuffers.count
+        precondition(abc==2)
+        precondition(cbp<abc)
         s.audioBuffers[s.callbackPlaying].withUnsafeBufferPointer { bp in
             buffer.mData!.copyMemory(from: bp.baseAddress!.advanced(by:s.callbackPlayPoint),
                                      byteCount: numToCopy*AudioOutput.DATA_BYTE_SIZE)

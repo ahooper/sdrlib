@@ -10,9 +10,8 @@ let package = Package(
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .library(
-            name: "sdrlib",
-            targets: ["sdrlib"]),
+        .library(name: "sdrlib",
+                 targets: ["sdrlib"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -21,14 +20,11 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
-        .systemLibrary(name: "Csdrplayapi", pkgConfig: "sdrplayapi"),
-                // https://www.sdrplay.com/downloads/
-                // MacOS Catalina API 3.07 RSP Control Library + Driver
-        .target(
-            name: "sdrlib",
-            dependencies: ["Csdrplayapi"]),
-        .testTarget(
-            name: "sdrlibTests",
-            dependencies: ["sdrlib", "Csdrplayapi"]),
+        .target(name: "sdrlib",
+                dependencies: ["sdrplay_api"]),
+        .binaryTarget(name: "sdrplay_api",
+                      path: "Frameworks/sdrplay_api3/sdrplay_api3.xcframework"),
+        .testTarget(name: "sdrlibTests",
+                    dependencies: ["sdrlib", "sdrplay_api"]),
     ]
 )

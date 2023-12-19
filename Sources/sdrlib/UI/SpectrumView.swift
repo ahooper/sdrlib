@@ -63,7 +63,7 @@ public struct SpectrumView: View {
                             config.scale.x = 1e3
                             config.labelX = "Frequency (kHz)"
                         }
-                        print("SpectrumView", "fs", fs, "centre", centreHz, "min", config.min, "max", config.max)
+                        //print("SpectrumView", "fs", fs, "centre", centreHz, "min", config.min, "max", config.max)
                         // reset spectrum when frequency changed
                         dbData = [Float](repeating: Float.nan, count: Int(source.N))
                         source.getdBandClear(&dbData)

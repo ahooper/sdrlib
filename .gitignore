@@ -7,4 +7,10 @@ DerivedData/
 .swiftpm/config/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
-/.hg
+/.hg/
+.idea/
+/.swiftpm
+/Frameworks/sdrplay_api3/include/**
+/Frameworks/sdrplay_api3/lib/**
+/Frameworks/sdrplay_api3/sdrplay_api.xcframework/**
+/Frameworks/sdrplay_api3/.idea
