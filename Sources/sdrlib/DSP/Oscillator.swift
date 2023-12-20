@@ -19,7 +19,7 @@ public struct OscillatorLookup<Element:DSPScalar>: IteratorProtocol {
 
     public init(signalHz:Double, sampleHz:Double, level:Float=1.0) {
         precondition(sampleHz >= signalHz * 2, "sampleHz must be >= 2 * signalHz")
-        table = (0..<TABLE_SIZE).map{Element.oscillator(2*Float.pi*Float($0)/Float(TABLE_SIZE), level)}
+        table = (0..<TABLE_SIZE).map{Element.polar(2*Float.pi*Float($0)/Float(TABLE_SIZE), level)}
         phase = 0
         step = Float(TABLE_SIZE) * Float(signalHz / sampleHz)
     }
@@ -159,7 +159,7 @@ public class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
         while phase >= Float.pi {
             phase -= Float.pi
         }
-        let v = Output.Element.oscillator(phase, level)
+        let v = Output.Element.polar(phase, level)
         phase += step
         return v
     }

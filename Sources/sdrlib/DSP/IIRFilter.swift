@@ -6,7 +6,7 @@
 //  Copyright © 2020 Andy Hooper. All rights reserved.
 //
 
-public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
     let reversedForward, reversedBackward:[Float]
     let numForward, numForwardMinus1, numBackward, numBackwardMinus1:Int
     let backwardCoefficient0:Float
@@ -43,18 +43,18 @@ public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
             overlapIn.replaceSubrange(numForwardMinus1..<overlapIn.count, with:x, 0..<numForwardMinus1)
             for i in 0..<numForwardMinus1 {
                 //trace("y\(i) =", "x", i-numForwardMinus1, reversedForward, "b")
-                out[i] = overlapIn.weightedSum(at:i, reversedForward)
+                out[i] = overlapIn.dotProduct(at:i, reversedForward)
             }
             for i in numForwardMinus1..<count {
                 //trace("y\(i) =", "x", i-numForwardMinus1, reversedForward, "b")
-                out[i] = x.weightedSum(at:i-numForwardMinus1, reversedForward)
+                out[i] = x.dotProduct(at:i-numForwardMinus1, reversedForward)
             }
             overlapIn.replaceSubrange(0..<numForwardMinus1, with:x, (count-numForwardMinus1)..<count)
         } else {
             overlapIn.replaceSubrange(numForwardMinus1..<overlapIn.count, with: x, 0..<count)
             for i in 0..<count {
                 //trace("y\(i) =", "x", i-numForwardMinus1, reversedForward, "b")
-                out[i] = overlapIn.weightedSum(at:i, reversedForward)
+                out[i] = overlapIn.dotProduct(at:i, reversedForward)
             }
             overlapIn.removeSubrange(0..<count)
         }
@@ -62,19 +62,19 @@ public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
         if count >= numBackwardMinus1 {
             for i in 0..<numBackwardMinus1 {
                 //trace("y\(i) = (y\(i) - (", "y", i-numBackwardMinus1, reversedBackward, "a", 1, ")) / a0")
-                let oi = (out[i] - overlapOut.weightedSum(at: i, reversedBackward)) / backwardCoefficient0
+                let oi = (out[i] - overlapOut.dotProduct(at: i, reversedBackward)) / backwardCoefficient0
                 out[i] = oi
                 overlapOut[i+numBackwardMinus1] = oi
             }
             for i in numBackwardMinus1..<count {
                 //trace("y\(i) = (y\(i) - (", "y", i-numBackwardMinus1, reversedBackward, "a", 1, ")) / a0")
-                out[i] = (out[i] - out.weightedSum(at: i-numBackwardMinus1, reversedBackward)) / backwardCoefficient0
+                out[i] = (out[i] - out.dotProduct(at: i-numBackwardMinus1, reversedBackward)) / backwardCoefficient0
             }
             overlapOut.replaceSubrange(0..<numBackwardMinus1, with:out, (count-numBackwardMinus1)..<count)
         } else {
             for i in 0..<count {
                 //trace("y\(i) = (y\(i) - (", "y", i-numBackwardMinus1, reversedBackward, "a", 1, ")) / a0")
-                let oi = (out[i] - overlapOut.weightedSum(at: i, reversedBackward)) / backwardCoefficient0
+                let oi = (out[i] - overlapOut.dotProduct(at: i, reversedBackward)) / backwardCoefficient0
                 out[i] = oi
                 overlapOut[i+numBackwardMinus1] = oi
             }

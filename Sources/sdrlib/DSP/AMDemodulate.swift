@@ -31,9 +31,9 @@ public class AMEnvDemodulate: AMDemodulate {
         if inCount == 0 { return }
 
         var xmean = ComplexSamples.zero // input average
-        x.withUnsafePointers { real, imag in
-            vDSP_meanv(real, 1, &xmean.real, vDSP_Length(inCount))
-            vDSP_meanv(imag, 1, &xmean.imag, vDSP_Length(inCount))
+        x.withUnsafeSplitPointers { in_sp in
+            vDSP_meanv(in_sp.pointee.realp, 1, &xmean.real, vDSP_Length(inCount))
+            vDSP_meanv(in_sp.pointee.imagp, 1, &xmean.imag, vDSP_Length(inCount))
         }
         
         var osum = Float.zero
@@ -44,7 +44,7 @@ public class AMEnvDemodulate: AMDemodulate {
         }
         
         var osub = -(osum / Float(inCount)) // output average
-        out.real.withUnsafeMutableBufferPointer { obp in
+        out.withUnsafeMutableBufferPointer { obp in
             vDSP_vsadd(obp.baseAddress!, 1, &osub, obp.baseAddress!, 1, vDSP_Length(inCount))
         }
         

@@ -6,9 +6,10 @@ build
 Packages
 *.xcodeproj
 */DerivedData/*
-.swiftpm/config/registries.json
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 .build
 .idea
 .swiftpm
+Frameworks/sdrplay_api3/include
+Frameworks/sdrplay_api3/lib
+Frameworks/sdrplay_api3/sdrplay_api3.xcframework

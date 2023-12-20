@@ -11,7 +11,7 @@ import XCTest
 class DelayTests: XCTestCase {
     
     func runTest(_ D:Int, _ x:[Float], _ y:[Float]) {
-        let d = Delay(source:NilSource<RealSamples>.Real(), D)
+        let d = Delay<RealSamples>(source:nil, D)
         var o=RealSamples()
         d.process(RealSamples(x), &o)
         AssertEqual(o, y, accuracy:Float.zero)
@@ -34,7 +34,7 @@ class DelayTests: XCTestCase {
     }
 
     func test4() throws {
-        let d = Delay(source:NilSource<RealSamples>.Real(), 4)
+        let d = Delay<RealSamples>(source:nil, 4)
         var o=RealSamples()
         d.process(RealSamples([1,2,3]), &o)
         AssertEqual(o, [0,0,0], accuracy:Float.zero)

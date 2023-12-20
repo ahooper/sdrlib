@@ -25,7 +25,7 @@ class FMModDemodulateTests: XCTestCase {
                                          return s} )
         let x = y
         // Test on the whole block
-        let fmod = FMTestBaseband(source:NilSource<RealSamples>.Real(), modulationFactor:modulationFactor)
+        let fmod = FMTestBaseband(source:nil, modulationFactor:modulationFactor)
         let fdem = FMDemodulate(source:fmod, modulationFactor:modulationFactor)
         fmod.process(RealSamples(x))
         let o = fdem.produceBuffer
@@ -33,7 +33,7 @@ class FMModDemodulateTests: XCTestCase {
         AssertEqual(Array(o[1..<N]), Array(y[1...]), accuracy:1.0e-6)
 
         // Test on two halves in sequence, to exercise stream overalap
-        let fm2 = FMTestBaseband(source:NilSource<RealSamples>.Real(), modulationFactor:modulationFactor)
+        let fm2 = FMTestBaseband(source:nil, modulationFactor:modulationFactor)
         let fd2 = FMDemodulate(source:fm2, modulationFactor:modulationFactor)
         assert(x.count == y.count)
         let half = x.count / 2
@@ -42,8 +42,8 @@ class FMModDemodulateTests: XCTestCase {
         fm2.process(RealSamples(Array(x[half...])))
         let o2 = fd2.produceBuffer
         var oo = RealSamples()
-        oo.append(o1)
-        oo.append(o2)
+        oo.append(contentsOf: o1)
+        oo.append(contentsOf: o2)
         AssertEqual(Array(oo[1..<N]), Array(y[1...]), accuracy:1.0e-6)
 
     }

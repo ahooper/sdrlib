@@ -17,7 +17,7 @@ class IIRFilterExercise: XCTestCase {
         let b:[Float] = [10,11,12,13,14]
         let a:[Float] = [10,11,12,13]
         let x:[Float] = [0,1,2,3,4,5,6,7,8,9,10,11]
-        let f = IIRFilter(source:NilSource<RealSamples>.Real(), b, a)
+        let f = IIRFilter<RealSamples>(source:nil, b, a)
         var o=RealSamples()
         f.process(RealSamples(x), &o)
     }

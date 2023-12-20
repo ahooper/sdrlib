@@ -8,6 +8,7 @@
 //  Created by Andy Hooper on 2020-01-25.
 //  Copyright © 2020 Andy Hooper. All rights reserved.
 //
+//  set default audio sample rate in Utilities : Audio MIDI Setup
 
 import class Foundation.NSCondition
 import CoreAudio

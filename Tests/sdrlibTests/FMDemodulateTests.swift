@@ -23,20 +23,20 @@ class FMDemodulateTests: XCTestCase {
         let x = [DSPComplex]((0..<N).map{phase += 2*Float.pi*y[$0]*modulationFactor
                                          return DSPComplex(cosf(phase),sinf(phase))})
         // Test on the whole block
-        let fdem = FMDemodulate(source:NilSource<ComplexSamples>.Complex(), modulationFactor:modulationFactor)
+        let fdem = FMDemodulate(source:nil, modulationFactor:modulationFactor)
 
         var o=RealSamples()
         fdem.process(ComplexSamples(x), &o)
         AssertEqual(Array(o[1..<N]), Array(y[1..<N]), accuracy:1.0e-6)
 
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = FMDemodulate(source:NilSource<ComplexSamples>.Complex(), modulationFactor:modulationFactor)
+        let f2 = FMDemodulate(source:nil, modulationFactor:modulationFactor)
         assert(x.count == y.count)
         let half = x.count / 2
         var oo=RealSamples(), o2=RealSamples()
         f2.process(ComplexSamples(Array(x[0..<half])), &oo)
         f2.process(ComplexSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(Array(oo[1..<N]), Array(y[1...]), accuracy:1.0e-6)
 
     }

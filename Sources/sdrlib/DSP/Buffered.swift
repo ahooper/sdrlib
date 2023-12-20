@@ -10,6 +10,7 @@ import class Foundation.DispatchQueue
 
 public protocol SinkProtocol: AnyObject {
     associatedtype Input
+    /// Abstract consumer processing function
     func process(_ input:Input)
 }
 
@@ -121,6 +122,8 @@ open class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>
         source?.sampleFrequency() ?? Double.signalingNaN
     }
     
+    // passing the output buffer as an argument, instead of accessing the class property,
+    // reduces calls to Swift's exclusive access checks (swift_beginAccess/swift_endAccess)
     func process(_ x:Input, _ output:inout Output) {
         fatalError("\(name) process(::) method must be overridden.")
     }
@@ -128,6 +131,8 @@ open class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>
     // SinkProtocol //
     
     public func process(_ input: Input) {
+        // passing the output buffer as an argument, instead of accessing the class property,
+        // reduces calls to Swift's exclusive access checks (swift_beginAccess/swift_endAccess)
         process(input, &outputBuffer)
         produce(clear: true)
     }
@@ -159,13 +164,4 @@ public class Sink<Input:DSPSamples>: SinkProtocol {
     public func process(_ x:Input) {
         fatalError("\(name) process(:) method must be overridden.")
     }
-}
-
-public class NilSource<Output:DSPSamples>: BufferedSource<Output> {
-    override public func sampleFrequency() -> Double {
-        Double.signalingNaN
-    }
-    
-    static func Real()->NilSource<RealSamples>? { nil }
-    static func Complex()->NilSource<ComplexSamples>? { nil }
 }

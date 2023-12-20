@@ -34,7 +34,7 @@ public class Delay<Samples:DSPSamples>: Buffered<Samples,Samples> {
             buffer.replaceSubrange(0..<P, with:x, (inCount-P)..<inCount)
         } else {
             // replacing only part of buffer
-            buffer.append(x)
+            buffer.append(contentsOf: x)
             out.replaceSubrange(0..<inCount, with: buffer, 0..<inCount)
             buffer.removeSubrange(0..<inCount)
         }

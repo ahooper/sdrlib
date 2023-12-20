@@ -6,7 +6,7 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
     let reversedCoefficients:[Float]
     let P, Pminus1:Int
     private var overlap:Samples
@@ -27,16 +27,16 @@ public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
         if inCount >= Pminus1 {
             overlap.replaceSubrange(Pminus1..<overlap.count, with:x, 0..<Pminus1)
             for i in 0..<Pminus1 {
-                output[i] = overlap.weightedSum(at:i, reversedCoefficients)
+                output[i] = overlap.dotProduct(at:i, reversedCoefficients)
             }
             for i in Pminus1..<inCount {
-                output[i] = x.weightedSum(at:i-Pminus1, reversedCoefficients)
+                output[i] = x.dotProduct(at:i-Pminus1, reversedCoefficients)
             }
             overlap.replaceSubrange(0..<Pminus1, with:x, (inCount-Pminus1)..<inCount)
         } else {
             overlap.replaceSubrange(Pminus1..<overlap.count, with: x, 0..<inCount)
             for i in 0..<inCount {
-                output[i] = overlap.weightedSum(at:i, reversedCoefficients)
+                output[i] = overlap.dotProduct(at:i, reversedCoefficients)
             }
             overlap.removeSubrange(0..<inCount)
         }

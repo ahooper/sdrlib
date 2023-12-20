@@ -17,7 +17,7 @@ class FIRNotchTests: XCTestCase {
         let H = FIRKernel.notch(filterSemiLength: semiLength,
                                 normalizedNotchFrequency: frequency,
                                 stopBandAttenuation: attentuation)
-        let q = FIRFilter(source:NilSource<ComplexSamples>.Complex(), H)
+        let q = FIRFilter<ComplexSamples>(source:nil, H)
         let x = ComplexSamples((0..<(NUM_SAMPLES+H.count)).map{DSPComplex.exp(DSPComplex(0, 2*Float.pi*frequency*Float($0)))})
         var o = ComplexSamples()
         q.process(x,&o)

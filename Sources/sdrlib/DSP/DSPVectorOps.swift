@@ -7,6 +7,7 @@
 
 import Accelerate.vecLib.vDSP
 
+#if false
 extension ComplexSamples {
     
     mutating func withUnsafeMutablePointers<R>(_ body: (_ split:DSPSplitComplex) throws -> R) rethrows -> R {
@@ -28,6 +29,7 @@ extension ComplexSamples {
     }
     
 }
+#endif
 #if false
 struct DSPVectorOps {
     

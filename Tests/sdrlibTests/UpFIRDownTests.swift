@@ -15,28 +15,28 @@ class UpFIRDownTests: XCTestCase {
     func runTest(_ P: Int, _ h: [Float], _ Q: Int, _ x: [Float], _ y: [Float], accuracy:Float=2.0e-7) {
         
         // Test on the whole block
-        let f = UpFIRDown(source:NilSource<RealSamples>.Real(), P, h, Q)
+        let f = UpFIRDown<RealSamples>(source:nil, P, h, Q)
         var o=RealSamples()
         f.process(RealSamples(x), &o)
         AssertEqual(o, y, accuracy:accuracy)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = UpFIRDown(source:NilSource<RealSamples>.Real(), P, h, Q)
+        let f2 = UpFIRDown<RealSamples>(source:nil, P, h, Q)
         let half = x.count / 2
         var oo=RealSamples(), o2=RealSamples()
         f2.process(RealSamples(Array(x[0..<half])), &oo)
         f2.process(RealSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:accuracy)
         
         // Test on one sample at a time, to exercise stream overalap
-        let f3 = UpFIRDown(source:NilSource<RealSamples>.Real(), P, h, Q)
+        let f3 = UpFIRDown<RealSamples>(source:nil, P, h, Q)
         oo=RealSamples()
         var o3 = RealSamples()
         for i in 0..<x.count {
             let xx = RealSamples(Array(x[i..<(i+1)]))
             f3.process(xx, &o3)
-            oo.append(o3)
+            oo.append(contentsOf: o3)
         }
         AssertEqual(oo, y, accuracy:accuracy)
     }
@@ -44,34 +44,34 @@ class UpFIRDownTests: XCTestCase {
     func runTest(_ P: Int, _ h: [Float], _ Q: Int, _ x: [DSPComplex], _ y: [DSPComplex], accuracy:Float=2.0e-7) {
         
         // Test on the whole block
-        let f = UpFIRDown(source:NilSource<ComplexSamples>.Complex(), P, h, Q)
+        let f = UpFIRDown<ComplexSamples>(source:nil, P, h, Q)
         var o=ComplexSamples()
         f.process(ComplexSamples(x), &o)
         AssertEqual(o, y, accuracy:accuracy)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = UpFIRDown(source:NilSource<ComplexSamples>.Complex(), P, h, Q)
+        let f2 = UpFIRDown<ComplexSamples>(source:nil, P, h, Q)
         let half = x.count / 2
         var oo=ComplexSamples(), o2=ComplexSamples()
         f2.process(ComplexSamples(Array(x[0..<half])), &oo)
         f2.process(ComplexSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:accuracy)
         
         // Test on one sample at a time, to exercise stream overalap
-        let f3 = UpFIRDown(source:NilSource<ComplexSamples>.Complex(), P, h, Q)
+        let f3 = UpFIRDown<ComplexSamples>(source:nil, P, h, Q)
         oo=ComplexSamples()
         var o3 = ComplexSamples()
         for i in 0..<x.count {
             let xx = ComplexSamples([DSPComplex](x[i..<(i+1)]))
             f3.process(xx, &o3)
-            oo.append(o3)
+            oo.append(contentsOf: o3)
         }
         AssertEqual(oo, y, accuracy:accuracy)
     }
 
     func runIdentityTest(_ up:Int, _ down:Int, _ P:Int, _ N:Int) {
-        let b = UpFIRDown(source:NilSource<RealSamples>.Real(),
+        let b = UpFIRDown<RealSamples>(source:nil,
                           up, [Float](repeatElement(1, count:P)), down)
         let x = [Float](repeatElement(1, count:N))
         let y = [Float](stride(from:0,to:N,by:down).map({i in (i < P) ? Float(i+1) : Float(P)}))
@@ -83,7 +83,7 @@ class UpFIRDownTests: XCTestCase {
         var rM = RealSamples(), o3=RealSamples()
         for _ in 0..<down {
             b.process(RealSamples(x), &o3)
-            rM.append(o3)
+            rM.append(contentsOf: o3)
         }
         AssertEqual(rM, yM, accuracy:2e-7)
     }

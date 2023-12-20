@@ -18,27 +18,27 @@ class IIRFilterTests: XCTestCase {
     
     fileprivate func runTest(_ b: [Float], _ a: [Float], _ x: [Float], _ y: [Float]) {
         // Test on the whole block
-        let f = IIRFilter(source:NilSource<RealSamples>.Real(), b, a)
+        let f = IIRFilter<RealSamples>(source:nil, b, a)
         var o=RealSamples()
         f.process(RealSamples(x), &o)
         AssertEqual(o, y, accuracy:2.0e-6)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = IIRFilter(source:NilSource<RealSamples>.Real(), b, a)
+        let f2 = IIRFilter<RealSamples>(source:nil, b, a)
         let half = x.count / 2
         var oo=RealSamples(), o2=RealSamples()
         f2.process(RealSamples(Array(x[0..<half])), &oo)
         f2.process(RealSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:2.0e-6)
 
         // Test on individual samples, to exercise stream overalap
-        let f3 = IIRFilter(source:NilSource<RealSamples>.Real(), b, a)
+        let f3 = IIRFilter<RealSamples>(source:nil, b, a)
         var o3 = RealSamples()
         oo.removeAll()
         for i in 0..<x.count {
             f3.process(RealSamples(Array(x[i...i])), &o3)
-            oo.append(o3)
+            oo.append(contentsOf: o3)
         }
         AssertEqual(oo, y, accuracy:2.0e-6)
         AssertEqual(oo, Array(o[0..<o.count]), accuracy: 0.0)
@@ -47,27 +47,27 @@ class IIRFilterTests: XCTestCase {
     fileprivate func runTest22(_ b: [Float], _ a: [Float], _ x: [Float], _ y: [Float]) {
         precondition(b.count==2 && a.count==2 && a[0]==1.0)
         // Test on the whole block
-        let f = IIR22Filter(source:NilSource<RealSamples>.Real(), b, a)
+        let f = IIR22Filter<RealSamples>(source:nil, b, a)
         var o=RealSamples()
         f.process(RealSamples(x), &o)
         AssertEqual(o, y, accuracy:2.0e-6)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = IIR22Filter(source:NilSource<RealSamples>.Real(), b, a)
+        let f2 = IIR22Filter<RealSamples>(source:nil, b, a)
         let half = x.count / 2
         var oo=RealSamples(), o2=RealSamples()
         f2.process(RealSamples(Array(x[0..<half])), &oo)
         f2.process(RealSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:2.0e-6)
 
         // Test on individual samples, to exercise stream overalap
-        let f3 = IIR22Filter(source:NilSource<RealSamples>.Real(), b, a)
+        let f3 = IIR22Filter<RealSamples>(source:nil, b, a)
         var o3 = RealSamples()
         oo.removeAll()
         for i in 0..<x.count {
             f3.process(RealSamples(Array(x[i...i])), &o3)
-            oo.append(o3)
+            oo.append(contentsOf: o3)
         }
         AssertEqual(oo, y, accuracy:2.0e-6)
         AssertEqual(oo, Array(o[0..<o.count]), accuracy: 0.0)
@@ -75,18 +75,18 @@ class IIRFilterTests: XCTestCase {
 
     fileprivate func runTest(_ b: [Float], _ a: [Float], _ x: [DSPComplex], _ y: [DSPComplex]) {
         // Test on the whole block
-        let f = IIRFilter(source:NilSource<ComplexSamples>.Complex(), b, a)
+        let f = IIRFilter<ComplexSamples>(source:nil, b, a)
         var o=ComplexSamples()
         f.process(ComplexSamples(x), &o)
         AssertEqual(o, y, accuracy:2.6e-6)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = IIRFilter(source:NilSource<ComplexSamples>.Complex(), b, a)
+        let f2 = IIRFilter<ComplexSamples>(source:nil, b, a)
         let half = x.count / 2
         var oo=ComplexSamples(), o2=ComplexSamples()
         f2.process(ComplexSamples(Array(x[0..<half])), &oo)
         f2.process(ComplexSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:2.6e-6)
     }
 

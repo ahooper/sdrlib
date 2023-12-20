@@ -10,7 +10,7 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
+public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
     let up, down, Q, Qminus1:Int
     var polyphase:[[Float]]
     var p, offset:Int
@@ -128,9 +128,9 @@ public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
             //print(p, "y(\(y))", terminator:"")
             if i < Qminus1 {
                 // need to draw from the state buffer
-                output[y] = overlap.weightedSum(at:i, polyphase[p])
+                output[y] = overlap.dotProduct(at:i, polyphase[p])
             } else {
-                output[y] = x.weightedSum(at:i-Qminus1, polyphase[p])
+                output[y] = x.dotProduct(at:i-Qminus1, polyphase[p])
             }
             y += 1
             p += down
@@ -146,7 +146,7 @@ public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
             // to beginning:
             overlap.removeSubrange(0..<(Qminus1-retain))
             // Then, copy the entire (short) input to end of buffer
-            overlap.append(x)
+            overlap.append(contentsOf: x)
         } else {
             // just copy last input samples into state buffer
             overlap.replaceSubrange(0..<Qminus1, with:x, (inCount-Qminus1)..<inCount)

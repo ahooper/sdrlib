@@ -16,27 +16,27 @@ class FIRFilterTests: XCTestCase {
 
     fileprivate func runTest(_ h: [Float], _ x: [Float], _ y: [Float]) {
         // Test on the whole block
-        let f = FIRFilter(source:NilSource<RealSamples>.Real(), h)
+        let f = FIRFilter<RealSamples>(source:nil, h)
         var o=RealSamples()
         f.process(RealSamples(x), &o)
         AssertEqual(o, y, accuracy:5.0e-8)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = FIRFilter(source:NilSource<RealSamples>.Real(), h)
+        let f2 = FIRFilter<RealSamples>(source:nil, h)
         let half = x.count / 2
         var oo=RealSamples(), o2=RealSamples()
         f2.process(RealSamples(Array(x[0..<half])), &oo)
         f2.process(RealSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:5.0e-8)
         
         // Test on individual samples, to exercise stream overalap
-        let f3 = FIRFilter(source:NilSource<RealSamples>.Real(), h)
+        let f3 = FIRFilter<RealSamples>(source:nil, h)
         var o3 = RealSamples()
         oo.removeAll()
         for i in 0..<x.count {
             f3.process(RealSamples(Array(x[i...i])), &o3)
-            oo.append(o3)
+            oo.append(contentsOf: o3)
         }
         AssertEqual(oo, y, accuracy:5.0e-8)
         AssertEqual(oo, Array(o[0..<o.count]), accuracy: 0.0)
@@ -44,18 +44,18 @@ class FIRFilterTests: XCTestCase {
     
     fileprivate func runTest(_ h: [Float], _ x: [DSPComplex], _ y: [DSPComplex]) {
         // Test on the whole block
-        let f = FIRFilter(source:NilSource<ComplexSamples>.Complex(), h)
+        let f = FIRFilter<ComplexSamples>(source:nil, h)
         var o=ComplexSamples()
         f.process(ComplexSamples(x), &o)
         AssertEqual(o, y, accuracy:1.0e-7)
         
         // Test on two halves in sequence, to exercise stream overalap
-        let f2 = FIRFilter(source:NilSource<ComplexSamples>.Complex(), h)
+        let f2 = FIRFilter<ComplexSamples>(source:nil, h)
         let half = x.count / 2
         var oo=ComplexSamples(), o2=ComplexSamples()
         f2.process(ComplexSamples(Array(x[0..<half])), &oo)
         f2.process(ComplexSamples(Array(x[half...])), &o2)
-        oo.append(o2)
+        oo.append(contentsOf: o2)
         AssertEqual(oo, y, accuracy:1.0e-7)
     }
 

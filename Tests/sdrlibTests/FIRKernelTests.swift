@@ -77,7 +77,7 @@ class FIRKernelTests: XCTestCase {
         let FB = FIRKernel.polyphaseBank(M, h)
         //print(FB)
         for j in 0..<M {
-            let y = X.weightedSum(at:0, FB[j])
+            let y = X.dotProduct(at:0, FB[j])
             XCTAssertEqual(y, test[j], accuracy:5e-5)
         }
     }

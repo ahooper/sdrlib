@@ -281,50 +281,37 @@ public class SpectrumData: Sink<ComplexSamples> {
         assert(fftTime.count==N)
         // can't use vDSP_zrvmul as samples is not mutable, but I and Q can
         // be multiplied independently since window coefficients are real
-        samples.real.withUnsafeBufferPointer { in_sp in
-            fftTime.real.withUnsafeMutableBufferPointer { out_sp in
-                vDSP_vmul(in_sp.baseAddress!.advanced(by: range.startIndex), 1,
+        samples.withUnsafeBufferPointers { in_real, in_imag in
+            fftTime.withUnsafeSplitPointers { out_sp in
+                vDSP_vmul(in_real.baseAddress! + in_real.startIndex + range.lowerBound, 1,
                           window, 1,
-                          out_sp.baseAddress!, 1,
+                          out_sp.pointee.realp, 1,
                           vDSP_Length(N))
-            }
-        }
-        samples.imag.withUnsafeBufferPointer { in_sp in
-            fftTime.imag.withUnsafeMutableBufferPointer { out_sp in
-                vDSP_vmul(in_sp.baseAddress!.advanced(by: range.startIndex), 1,
+                vDSP_vmul(in_imag.baseAddress! + in_imag.startIndex + range.lowerBound, 1,
                           window, 1,
-                          out_sp.baseAddress!, 1,
+                          out_sp.pointee.imagp, 1,
                           vDSP_Length(N))
             }
         }
         // perform FFT
         assert(fftTime.count==N && fftFreq.count==N)
-        fftTime.withUnsafeMutablePointers { in_sp in
-            fftFreq.withUnsafeMutablePointers { out_sp in
-                vDSP_DFT_Execute(dft, in_sp.realp, in_sp.imagp, out_sp.realp, out_sp.imagp)
+        fftTime.withUnsafeBufferPointers { in_real, in_imag in
+            fftFreq.withUnsafeSplitPointers { out_sp in
+                vDSP_DFT_Execute(dft,
+                                 in_real.baseAddress! + in_real.startIndex, in_imag.baseAddress! + in_imag.startIndex,
+                                 out_sp.pointee.realp, out_sp.pointee.imagp)
             }
         }
         // multiply by conjugate to get magnitude squared, which will be in the real part
-        fftFreq.withUnsafeMutablePointers { f_sp in
-            fftFMagSq.withUnsafeMutablePointers { msq_sp in
-                // need mutables for vDSP arguments
-                var f_msp = f_sp, msq_msp = msq_sp
-                vDSP_zvmul(&f_msp, 1,
-                           &f_msp, 1,
-                           &msq_msp, 1,
-                           vDSP_Length(N),
-                           /*aConjugate*/-1)
+        fftFreq.withUnsafeSplitPointers { f_sp in
+            fftFMagSq.withUnsafeSplitPointers { msq_sp in
+                vDSP_zvmul(f_sp, 1, f_sp, 1, msq_sp, 1, vDSP_Length(N), /*aConjugate*/-1)
             }
         }
 
         // add to sum for averaging TODO: integrating factors gamma,alpha
-        fftFMagSq.real.withUnsafeBufferPointer { msq_bp in
-            fftSum.withUnsafeMutableBufferPointer { sum_bp in
-                vDSP_vadd(msq_bp.baseAddress!, 1,
-                          sum_bp.baseAddress!, 1,
-                          sum_bp.baseAddress!, 1,
-                          vDSP_Length(N))
-            }
+        fftFMagSq.withUnsafeBufferPointers { msq_real, msq_imag in
+            vDSP_vadd(msq_real.baseAddress!, 1, fftSum, 1, &fftSum, 1, vDSP_Length(N))
         }
 
         numberSummed += 1
