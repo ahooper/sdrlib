@@ -64,6 +64,7 @@ public struct SplitComplex: DSPSamples {
     }
     
     public mutating func replaceSubrange(_ r: Range<Int>, with: SplitComplex, _ w: Range<Int>) {
+        // could eliminate this function by implementing SubSequence
         re.replaceSubrange(r, with: with.re[w])
         im.replaceSubrange(r, with: with.im[w])
     }
@@ -126,9 +127,9 @@ public struct SplitComplex: DSPSamples {
     }
     
     public func withUnsafeSplitPointers<Result>(_ body: (UnsafePointer<DSPSplitComplex>) throws -> Result) rethrows -> Result? {
-        try withUnsafeBufferPointers { rebuf, imbuf in
-            var split = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: rebuf.baseAddress! + rebuf.startIndex),
-                                        imagp: UnsafeMutablePointer(mutating: imbuf.baseAddress! + imbuf.startIndex))
+        try withUnsafeBufferPointers { reBuf, imBuf in
+            var split = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: reBuf.baseAddress! + reBuf.startIndex),
+                                        imagp: UnsafeMutablePointer(mutating: imBuf.baseAddress! + imBuf.startIndex))
             return try body(&split)
         }
     }

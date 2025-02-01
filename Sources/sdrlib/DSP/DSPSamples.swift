@@ -37,12 +37,18 @@ extension DSPComplex: DSPScalar {
     }
 }
 
-public protocol DSPSamples: RangeReplaceableCollection, RandomAccessCollection, MutableCollection where Element: DSPScalar, Index == Int {
+public protocol DSPSamples: RangeReplaceableCollection, RandomAccessCollection,
+                            MutableCollection where Element: DSPScalar, Index == Int {
     static var zero:Element { get }
     static var nan:Element { get }
     mutating func resize(_ newCount:Int)
-    //
+    // like  replaceSubrange<C, R>(R, with: C) on a slice but without having to implement
+    // SubSequence for SplitComplex
     mutating func replaceSubrange(_ r:Range<Int>, with:Self, _ w:Range<Int>)
+    
+    //TODO:  func dotProduct(at: Index, _ h: UnsafeBufferPointer<Float>) -> Element
+    func dotProduct(at: Index, _ h: [Float]) -> Element
+    func dotProduct(at: Index, _ h: SplitComplex) -> DSPComplex
 }
 
 public typealias RealSamples = ContiguousArray<Float>
@@ -58,8 +64,6 @@ extension RealSamples: DSPSamples {
             append(contentsOf:repeatElement(Element.nan, count:newCount-count))
         }
     }
-    // like  replaceSubrange<C, R>(R, with: C) on a slice but without having to implement
-    // slices for SplitComplex
     public mutating func replaceSubrange(_ r:Range<Int>, with:Self, _ w:Range<Int>) {
         replaceSubrange(r, with:with[w])
     }

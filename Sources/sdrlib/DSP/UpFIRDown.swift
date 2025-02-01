@@ -10,7 +10,7 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
+public class UpFIRDown<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let up, down, Q, Qminus1:Int
     var polyphase:[[Float]]
     var p, offset:Int

@@ -6,7 +6,7 @@
 //  Copyright © 2019 Andy Hooper. All rights reserved.
 //
 
-public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
+public class FIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let reversedCoefficients:[Float]
     let P, Pminus1:Int
     private var overlap:Samples

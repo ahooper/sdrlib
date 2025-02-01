@@ -650,6 +650,39 @@ public class SDRplay: BufferedSource<ComplexSamples> {
 
 }
 
+extension SplitComplex {
+    fileprivate mutating func append(_ xi: UnsafePointer<Int16>,
+                                     _ xq: UnsafePointer<Int16>,
+                                     _ n: Int, _ scale: Float) {
+        // Alternatives tried:
+#if false
+        for j in 0..<n {
+            append(ComplexSamples.Element(
+                real: Float(xi[j]) * SDRplay.SHORT_SCALE,
+                imag: Float(xq[j]) * SDRplay.SHORT_SCALE))
+        }
+#elseif false
+        // In old Swift releases, this seemed to discard reserved capacity,
+        // which is important for performance
+        append(contentsOf: (0..<n).map{ComplexSamples.Element(
+                                            Float(xi[$0]) * SDRplay.SHORT_SCALE,
+                                            Float(xq[$0]) * SDRplay.SHORT_SCALE)})
+#elseif false
+        // In old Swift releases, this seemed to discard reserved capacity,
+        // which is important for performance
+        let xiBuf = UnsafeBufferPointer(start:xi, count:n),
+            xqBuf = UnsafeBufferPointer(start:xq, count:n)
+        append(real: xiBuf.map{Float($0) * SDRplay.SHORT_SCALE},
+               imag: xqBuf.map{Float($0) * SDRplay.SHORT_SCALE})
+#elseif true
+        re.append(contentsOf:
+                    UnsafeBufferPointer(start:xi, count:n).map{Float($0) * scale})
+        im.append(contentsOf: 
+                    UnsafeBufferPointer(start:xq, count:n).map{Float($0) * scale})
+#endif
+    }
+}
+
 /// This callback is triggered when there are samples to be processed.
 /// - Parameter xi: Pointer to the real data in the buffer
 /// - Parameter xq: Pointer to the imaginary data in the buffer
@@ -682,28 +715,7 @@ func SDRplay_streamCallback(xi: UnsafeMutablePointer<Int16>?,
             s.bufferFill.lock() // BEGIN LOCK REGION
             let n = min(Int(numSamples),
                         s.streamBuffer.capacity - s.streamBuffer.count)
-            // Alternatives tried:
-#if false
-            for j in 0..<n {
-                s.streamBuffer.append(ComplexSamples.Element(
-                    real: Float(xi[j]) * SDRplay.SHORT_SCALE,
-                    imag: Float(xq[j]) * SDRplay.SHORT_SCALE))
-            }
-#elseif false
-            // In old Swift releases, this seemed to discard reserved capacity,
-            // which is important for performance
-            s.streamBuffer.append(contentsOf:
-                                    (0..<n).map{ComplexSamples.Element(
-                                        Float(xi[$0]) * SDRplay.SHORT_SCALE,
-                                        Float(xq[$0]) * SDRplay.SHORT_SCALE)})
-#elseif true
-            // In old Swift releases, this seemed to discard reserved capacity,
-            // which is important for performance
-            let xiBuf = UnsafeBufferPointer(start:xi, count:n),
-                xqBuf = UnsafeBufferPointer(start:xq, count:n)
-            s.streamBuffer.append(real: xiBuf.map{Float($0) * SDRplay.SHORT_SCALE},
-                                  imag: xqBuf.map{Float($0) * SDRplay.SHORT_SCALE})
-#endif
+            s.streamBuffer.append(xi, xq, n, SDRplay.SHORT_SCALE)
             s.overflow += (Int(numSamples)-n)
             //print("SDRplay callback signal", numSamples, s.buffer.count, s.buffer.capacity, n )
             s.bufferFill.signal()

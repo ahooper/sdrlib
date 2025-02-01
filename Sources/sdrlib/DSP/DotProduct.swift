@@ -11,13 +11,7 @@ import struct Accelerate.vecLib.vDSP.vDSP_Length
 import func Accelerate.vecLib.vDSP.vDSP_dotpr
 import func Accelerate.vecLib.vDSP.vDSP_zdotpr
 
-public protocol DotProduct: DSPSamples {
-    //TODO:  func dotProduct(at: Index, _ h: UnsafeBufferPointer<Float>) -> Element
-    func dotProduct(at: Index, _ h: [Float]) -> Element
-    func dotProduct(at: Index, _ h: SplitComplex) -> DSPComplex
-}
-
-extension RealSamples: DotProduct {
+extension RealSamples {
     public func dotProduct(at: Index, _ h: [Float]) -> Element {
         withContiguousStorageIfAvailable { xbuf in
             h.withUnsafeBufferPointer { hbuf in
@@ -34,7 +28,7 @@ extension RealSamples: DotProduct {
     }
 }
 
-extension SplitComplex: DotProduct {
+extension SplitComplex {
     public func dotProduct(at: Index, _ h: [Float]) -> Element {
         withUnsafeBufferPointers { rebuf, imbuf in
             h.withUnsafeBufferPointer { hbuf in

@@ -20,7 +20,7 @@ import func CoreFoundation.coshf
 import func CoreFoundation.sinhf
 import struct Accelerate.vecLib.vDSP.DSPComplex
 
-extension DSPComplex: Numeric, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+extension DSPComplex: @retroactive Numeric, @retroactive Equatable, @retroactive CustomStringConvertible, @retroactive CustomDebugStringConvertible {
     public typealias Element = Float
     public typealias Magnitude = Float
 

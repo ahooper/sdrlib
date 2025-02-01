@@ -6,7 +6,7 @@
 //  Copyright © 2020 Andy Hooper. All rights reserved.
 //
 
-public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> where Samples:DotProduct {
+public class IIRFilter<Samples:DSPSamples>: Buffered<Samples,Samples> {
     let reversedForward, reversedBackward:[Float]
     let numForward, numForwardMinus1, numBackward, numBackwardMinus1:Int
     let backwardCoefficient0:Float
