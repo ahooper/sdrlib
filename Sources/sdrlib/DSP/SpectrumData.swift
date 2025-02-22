@@ -25,6 +25,138 @@
 import Accelerate.vecLib.vDSP
 import class Foundation.NSLock
 
+public class SpectrumData: Sink<ComplexSamples> {
+    let N:Int /// FFT length
+    public var averagingFactor:Float // need var for VDSP_vsmul
+    public var centreHz:Double = 0 {
+        didSet {
+            freeze()
+        }
+    }
+    private var window:[Float]
+    private var dft: vDSP_DFT_Setup
+    private var fftTime, fftFreq: ComplexSamples
+    private var powerAvg:[Float]
+    private var zeroReference:[Float]
+    private let exclusive:NSLock
+    public init(source:BufferedSource<Input>?, fftLength:UInt, windowFunction: WindowFunction.Function) {
+        N = Int(fftLength)
+        averagingFactor = 1.0 / 10 // 5, 10, 20
+        let noPrevious = OpaquePointer(bitPattern: 0) // NULL
+        dft = vDSP_DFT_zop_CreateSetup(noPrevious, vDSP_Length(N), vDSP_DFT_Direction.FORWARD)!
+        fftTime = ComplexSamples()
+        fftTime.reserveCapacity(N)
+        fftFreq = ComplexSamples(repeating: .zero, count: N)
+        zeroReference = [Float](repeating:1.0, count:N)  // 1 = full scale
+        powerAvg = [Float](repeating: -20, count: N)
+        
+        window = WindowFunction.Periodic(N, windowFunction)// WindowFunction.hamming)
+        // scale to unity gain
+        var sumsq: Float = 0
+        vDSP_svesq(window, 1, /*output*/&sumsq, vDSP_Length(N))
+        let meanSquared = sumsq / Float(N)
+        var normFac = 1.0 / meanSquared.squareRoot()
+        vDSP_vsmul(window, 1, &normFac, &window, 1, vDSP_Length(window.count))
+
+        exclusive = NSLock()
+        first = true
+        super.init("SpectrumData", source)
+    }
+    
+    deinit {
+        vDSP_DFT_DestroySetup(dft)
+    }
+
+    override public func process(_ input:Input) {
+        exclusive.lock(); defer {exclusive.unlock()}
+        if input.count >= N {
+            fftTime.replaceSubrange(0..<fftTime.count, with: input, (input.count-N)..<input.count)
+        } else if fftTime.count + input.count > N {
+            fftTime.removeFirst(fftTime.count + input.count - N)
+            fftTime.append(contentsOf: input)
+            assert(fftTime.count == N)
+        } else {
+            fftTime.append(contentsOf: input)
+        }
+    }
+    
+    var first:Bool
+    
+    /// samples available to compute spectrum
+    func available() -> Bool {
+        return fftTime.count == N
+    }
+    
+    func getdBandClear(_ dBdata :inout [Float]) {
+        precondition(dBdata.count == N)
+        precondition(window.count == N)
+        exclusive.lock(); defer {exclusive.unlock()}
+        if (!available()) {
+            // not enough input yet to produce
+            dBdata.replaceSubrange(0..<N, with: repeatElement(10*log10f(Float.leastNormalMagnitude), count: N))
+            return
+        }
+        // apply window
+        fftTime.withUnsafeSplitPointers { in_sp in
+            vDSP_zrvmul(in_sp, 1, window, 1, /*output*/in_sp, 1, vDSP_Length(N))
+        }
+        // perform FFT
+        fftTime.withUnsafeBufferPointers { in_real, in_imag in
+            fftFreq.withUnsafeSplitPointers { freq_sp in
+                vDSP_DFT_Execute(dft,
+                                 in_real.baseAddress! + in_real.startIndex, in_imag.baseAddress! + in_imag.startIndex,
+                                 /*output*/freq_sp.pointee.realp, /*output*/freq_sp.pointee.imagp)
+            }
+        }
+        let rbw = Float(1.0),
+            normalizationFactor = Float(N) * rbw.squareRoot()
+        var normFactSq = 1.0 / (normalizationFactor * normalizationFactor) // need var for vDSP_vsmul
+        var least = Float.leastNormalMagnitude
+        var averagingComplement = (1.0 - averagingFactor)
+        // compute power spectral density
+        fftFreq.withUnsafeSplitPointers { freq_sp in
+            // multiply by conjugate to get magnitude squared, which will be in the real part
+            vDSP_zvmul(freq_sp, 1, freq_sp, 1, /*output*/freq_sp, 1, vDSP_Length(N), /*aConjugate*/-1)
+            let realp = freq_sp.pointee.realp
+            // normalize to band width
+            vDSP_vsmul(realp, 1, &normFactSq, /*output*/realp, 1, vDSP_Length(N))
+            // add minimal to ensure non-zero for logarithm
+            vDSP_vsadd(realp, 1, &least, /*output*/realp, 1, vDSP_Length(N))
+            // logPower = 10 * log10(magsq)
+            vDSP_vdbcon(realp, 1, &zeroReference, /*output*/realp, 1, vDSP_Length(N), 0/*amplitude*/)
+            // powerAvg = (1.0 - averagingFactor)*powerAvg + averagingFactor*logPower
+            if first {
+                var zero = Float(0) // need var for vDSP_vsadd
+                vDSP_vsadd(realp, 1, &zero, /*output*/&powerAvg, 1, vDSP_Length(N)) // use add 0 to copy
+                first = false
+            } else {
+                vDSP_vsmul(&powerAvg, 1, &averagingComplement, /*output*/&powerAvg, 1, vDSP_Length(N))
+                vDSP_vsmul(realp, 1, &averagingFactor, /*output*/realp, 1, vDSP_Length(N))
+                vDSP_vadd(&powerAvg, 1, realp, 1, /*output*/&powerAvg, 1, vDSP_Length(N))
+            }
+            // rotate positive frequencies to right (zero frequency from [0] to [N/2])
+            let Nover2 = N/2
+            dBdata.replaceSubrange(0..<Nover2, with: powerAvg[Nover2..<N])
+            dBdata.replaceSubrange(Nover2..<N, with: powerAvg[0..<Nover2])
+        }
+    }
+    
+    public func freeze() {
+        fftTime.removeAll()
+        first = true // freeze last view
+    }
+    
+    public func sampleFrequency()-> Double {
+        source?.sampleFrequency() ?? Double.signalingNaN
+    }
+
+    static func mock()->SpectrumData {
+        let mockSource = Oscillator<ComplexSamples>(signalHz: 0, sampleHz: 1)
+        return SpectrumData(source: mockSource, fftLength: 4, windowFunction: WindowFunction.hamming)
+    }
+
+}
+
 #if false
 // exponential averaging
 public class SpectrumDataE: Sink<ComplexSamples> {
@@ -227,8 +359,9 @@ public class SpectrumDataE: Sink<ComplexSamples> {
 }
 #endif
 
+#if false
 // Arithmetic average
-public class SpectrumData: Sink<ComplexSamples> {
+open class SpectrumData: Sink<ComplexSamples> {
     let N:Int, /// FFT length
         D:Int  /// FFT segment spacing
     private let dft:vDSP_DFT_Setup
@@ -240,7 +373,13 @@ public class SpectrumData: Sink<ComplexSamples> {
     private var zeroReference:[Float]
     private let readLock:NSLock
     private var sumInitialValue = Float(1.0e-15) //-150dB ensure non-zero for logarithm, need a var for vDSP_vfill
-    public var centreHz:Double = 0
+    public var centreHz:Double = 0 {
+        didSet {
+            carry.resize(0)
+            vDSP_vfill(&sumInitialValue, &fftSum, 1, vDSP_Length(N))
+            numberSummed = 0
+        }
+    }
 
     /// The supported values for fftLength are f * 2**n, where f is 1, 3, 5, or 15 and n is at least 3.
     public init(source:BufferedSource<Input>?, fftLength:UInt, overlap:UInt=0, windowFunction:WindowFunction.Function=WindowFunction.hann) {
@@ -277,6 +416,7 @@ public class SpectrumData: Sink<ComplexSamples> {
     func transformAndSum(_ samples: Input, _ range:Range<Int>) {
         //print("SpectrumData transformAndSum",samples.count,range)
         precondition(range.count == N)
+        //if numberSummed > 5 { return }
         // apply window
         assert(fftTime.count==N)
         // can't use vDSP_zrvmul as samples is not mutable, but I and Q can
@@ -411,3 +551,4 @@ public class SpectrumData: Sink<ComplexSamples> {
     }
 
 }
+#endif

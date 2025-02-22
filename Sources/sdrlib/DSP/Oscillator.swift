@@ -180,7 +180,7 @@ public class OscillatorPrecise<Output:DSPSamples>: BufferedSource<Output> {
         }
     }
     
-    var bufferSize: Int
+    public var bufferSize: Int
     
     override public func sampleFrequency() -> Double {
         return Double(sampleHz)

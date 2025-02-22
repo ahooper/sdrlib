@@ -1,4 +1,5 @@
 #!/bin/sh
+# https://developer.apple.com/documentation/xcode/creating-a-multi-platform-binary-framework-bundle
 
 API_DIR=/usr/local
 INC_DIR=include
@@ -30,4 +31,6 @@ cp -p $API_DIR/lib/$DYLIB $LIB_DIR
 codesign --remove-signature $LIB_DIR/$DYLIB
 install_name_tool -id @rpath/$DYLIB $LIB_DIR/$DYLIB
 xcodebuild -create-xcframework -library $LIB_DIR/$DYLIB -headers $INC_DIR -output $OUT_XCFW
+codesign --timestamp -fs $SIGN_ID $OUT_XCFW/macos-arm64_x86_64/$DYLIB
 codesign --timestamp -fs $SIGN_ID $OUT_XCFW
+rm -r $LIB_DIR $INC_DIR

@@ -4,9 +4,9 @@
 //
 //  Created by Andy Hooper on 2023-03-09.
 //
-//  https://holometer.fnal.gov/GH_FFT.pdf
-// https://en.wikipedia.org/wiki/Window_function
-// https://ccrma.stanford.edu/~jos/sasp/Spectrum_Analysis_Windows.html
+//  https://holometer.fnal.gov/GH_FFT.pdf = https://www.researchgate.net/publication/267956210_Spectrum_and_spectral_density_estimation_by_the_Discrete_Fourier_transform_DFT_including_a_comprehensive_list_of_window_functions_and_some_new_flat-top_windows
+//  https://en.wikipedia.org/wiki/Window_function
+//  https://ccrma.stanford.edu/~jos/sasp/Spectrum_Analysis_Windows.html
 // https://www.researchgate.net/publication/2995027_On_the_Use_of_Windows_for_Harmonic_Analysis_With_the_Discrete_Fourier_Transform
 //  https://github.com/scipy/scipy/blob/main/scipy/signal/windows/_windows.py
 

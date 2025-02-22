@@ -138,9 +138,9 @@ open class Buffered<Input:DSPSamples, Output:DSPSamples>: BufferedSource<Output>
     }
 }
 
-public class Sink<Input:DSPSamples>: SinkProtocol {
+open class Sink<Input:DSPSamples>: SinkProtocol {
     let name: String
-    var source: BufferedSource<Input>?
+    public var source: BufferedSource<Input>?
     
     public init(_ name:String, _ source:BufferedSource<Input>?) {
         self.source = source
@@ -161,7 +161,7 @@ public class Sink<Input:DSPSamples>: SinkProtocol {
 
     // SinkProtocol //
     
-    public func process(_ x:Input) {
+    open func process(_ x:Input) {
         fatalError("\(name) process(:) method must be overridden.")
     }
 }

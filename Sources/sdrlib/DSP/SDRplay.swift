@@ -185,6 +185,7 @@ public class SDRplay: BufferedSource<ComplexSamples> {
               "iqOffset",deviceParams!.pointee.rxChannelA.pointee.ctrlParams.dcOffset.IQenable,
               "decimation", deviceParams!.pointee.rxChannelA.pointee.ctrlParams.decimation.decimationFactor,
               "agc mode",deviceParams!.pointee.rxChannelA.pointee.ctrlParams.agc.enable.rawValue,
+              "set",deviceParams!.pointee.rxChannelA.pointee.ctrlParams.agc.setPoint_dBfs,
               "adsbMode",deviceParams!.pointee.rxChannelA.pointee.ctrlParams.adsbMode.rawValue,
               "rfHz", deviceParams!.pointee.rxChannelA.pointee.tunerParams.rfFreq.rfHz,
               "bwType", deviceParams!.pointee.rxChannelA.pointee.tunerParams.bwType.rawValue,

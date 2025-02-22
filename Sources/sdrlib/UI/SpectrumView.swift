@@ -30,18 +30,27 @@ public struct SpectrumView: View {
     @State var waterfall = WaterfallScene(size: CGSize(width: 1024, height: 200))
     
     // https://www.hackingwithswift.com/quick-start/swiftui/how-to-use-a-timer-with-swiftui
-    static let REFRESH_HZ = 20.0
+    public static let REFRESH_HZ = 20.0
     let timer: Publishers.Autoconnect<Timer.TimerPublisher>
 
-    public init(source: SpectrumData?) {
+    public init(source: SpectrumData?, refreshHz:Double = REFRESH_HZ) {
         // needs an explicit initializer to allow client access to set source
         self.source = source
         // have to initialize timer here since no way to call the implicit initializer
-        timer = Timer.publish(every: 1/SpectrumView.REFRESH_HZ /*seconds*/,
+        timer = Timer.publish(every: 1/refreshHz /*seconds*/,
                                                 //TODO: configurable
                                                 //TODO: tolerance
                               on: .main, in: .common).autoconnect()
     }
+    
+    fileprivate func updatePoints() {
+        points = (0..<points.count).map{ i in GraphData.Point(points[i].x, y:dbData[i]) }
+        return
+        for i in 0..<dbData.count {
+            points[i].y = dbData[i]
+        }
+    }
+    
     public var body: some View {
         VStack(spacing: 0) {
             GraphView(data: [viewData], config: config)
@@ -70,21 +79,19 @@ public struct SpectrumView: View {
                         // set to rebuild axes below
                         dbData.removeAll(keepingCapacity: true)
                     }
-                    if source.numberSummed > 0 {
+                    if source.available() {
                         //print("SpectrumView", source.numberSummed)
                         let N = Int(source.N)
                         if dbData.count != N {
                            dbData = [Float](repeating: Float.nan, count: N)
                             let bin = Float(source.sampleFrequency()) / Float(N)
-                            //print("SpectrumView", "bin", bin, "N", N)
-                            points = zip((0..<N).map{ i in bin * Float(i) + config.min.x },
-                                         dbData).map{ p in GraphData.Point(x:p.0, y:p.1) }
+                            print("SpectrumView", "bin", bin, "N", N)
+                            points = (0..<N).map{ i in GraphData.Point(bin * Float(i) + config.min.x, y:dbData[i]) }
                             //print("SpectrumView", "points", points.map{p in p.x})
                         }
                         source.getdBandClear(&dbData)
-                        for i in 0..<dbData.count {
-                            points[i].y = dbData[i]
-                        }
+                        // faster to rebuild than modify in place!
+                        points = (0..<points.count).map{ i in GraphData.Point(points[i].x, y:dbData[i]) }
                         waterfall.addLine(data: dbData, minValue: config.min.y, maxValue: config.max.y)
                         viewData.points.replaceSubrange(0..<viewData.points.count, with: points)
                     }

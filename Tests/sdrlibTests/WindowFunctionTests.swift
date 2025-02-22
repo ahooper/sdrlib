@@ -9,6 +9,10 @@ import XCTest
 import func CoreFoundation.exp
 import func CoreFoundation.log
 import func CoreFoundation.lgammal
+import func CoreFoundation.log10f
+import Accelerate.vecLib.vDSP
+import struct Accelerate.vecLib.vDSP.DSPComplex
+
 @testable import sdrlib
 
 final class WindowFunctionTests: XCTestCase {
@@ -193,4 +197,68 @@ final class WindowFunctionTests: XCTestCase {
         caseBessi0(200.5)
     }
 
+    #if false
+    // liquid-dsp/src/math/tests/math_window_autotest.c
+    func runWindow(winfun:WindowFunction.Function, n:Int, arg:Float) {
+        var w = [Float](),
+            wsum = Float(0)
+        for i in 0..<n {
+            w.append(winfun(i, n))
+            wsum += w[i]
+        }
+        w = WindowFunction.Symmetric(n, winfun)
+        Swift.print(w);
+        // compute spectral response
+        let nfft = 1280 // 5 * 2^8
+        var buf_time = ComplexSamples(), buf_freq = ComplexSamples(repeating:.nan, count:nfft)
+        for i in 0..<nfft {
+            buf_time.append(ComplexSamples.Element(i < n ? w[i]/wsum : 0))
+        }
+        let noPrevious = OpaquePointer(bitPattern: 0) // NULL
+        let dft = vDSP_DFT_zop_CreateSetup(noPrevious, vDSP_Length(nfft), vDSP_DFT_Direction.FORWARD)!
+        buf_time.withUnsafeBufferPointers { in_real, in_imag in
+            buf_freq.withUnsafeSplitPointers { out_sp in
+                vDSP_DFT_Execute(dft,
+                                 in_real.baseAddress! + in_real.startIndex, in_imag.baseAddress! + in_imag.startIndex,
+                                 out_sp.pointee.realp, out_sp.pointee.imagp)
+            }
+        }
+        Swift.print(buf_freq);
+
+        // compute bandwidth of window, ensure reasonable range
+        for i in 0..<nfft {
+            let r = i % 2,
+                L = (i-r)/2,
+                k = nfft/2 + (r==0 ? -L : L+r);
+            if 20.0*log10f(buf_freq[k].modulus()) < -6.0 {
+                let bw = Float(i) / Float(nfft)
+                Swift.print("runWindow bw:", bw)
+                XCTAssertGreaterThan(bw, 0.02)
+                XCTAssertLessThan(bw, 0.08)
+            }
+        }
+       
+/*
+
+        // check side lobes at band edges
+        for (i=0; i<nfft; i++) {
+            float f = (float)i/(float)nfft - 0.5f;
+            if (fabsf(f) > 0.20f)
+                CONTEND_LESS_THAN(20*log10f(cabsf(buf_freq[i])), -40.0f);
+        }
+*/
+    }
+    
+    func testHammingBW() {
+        runWindow(winfun: WindowFunction.hamming(_:_:), n: 71, arg: 0)
+    }
+    
+    func testBartlettBW() {
+        runWindow(winfun: WindowFunction.bartlett(_:_:), n: 71, arg: 0)
+    }
+    
+    func testHannBW() {
+        runWindow(winfun: WindowFunction.hann(_:_:), n: 71, arg: 0)
+    }
+#endif
 }
